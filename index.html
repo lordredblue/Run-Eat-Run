@@ -9,8 +9,22 @@
     <div id="Test">
       Some text
     </div>
+    <div id="div2" style="width:200px;height:300px;background-color:red"></div>
     <script>
-      Test.innerHTML="new text";
+      //Test.innerHTML="new text";
+
+      function changediv(text){
+        var divid = document.getElementById("Test");
+        divid.innerHTML= text;
+      }
+      window.setInterval(function(){
+        changediv(new Date());
+      }, 1000);
+      
+      div2.addEventListener("click",function(event){
+        Test.innerHTML = event.clientX + "," + event.clientY;
+      });
     </script>
+    
   </body>
 </html>
