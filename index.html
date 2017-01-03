@@ -2,9 +2,36 @@
 <html>
 <body>
 
-<h1>Test Page</h1>
+<h1>Run-eat-Run Project Page</h1>
+<h2>Collaborated by: Nakul, Mara, Johnny, Chris, Arun, and Ranjan</h2>
+<p>
+Coherent Functional Spec
 
-<p>Test Page</p>
+Phase 1- Local Single Player
+1. Shape that the player can move on the canvas. "Driving" style controls with Left-Right rotation and Front-Back motion. 8 hours
+2. Have other static shapes on the canvas and implement time logic of new shape injections.  2 hours
+3. The player is able to interact with the static objects by consuming them and consequently growing. Implement a system of shape logic where there are different types of shapes and one nemesis shape. Implement the object of the game logic: the player to eat all the other types of shapes will be able to eat the nemesis shape and win the game after eating the nemesis shape.  8 hours
+4. Give the other shapes basic motion/A.I. capability. Implement motion logic in which a shape becomes slower as it becomes progressively larger.  12 hours
+5.  "Turn the lights off"-  limit the visual cues and simulate darkness in the game. Visual cues consist of periodic blinking. 4 hours
+6. Implement sonar/radar sound tracking with controllable ranges to detect the surrounding shapes.   Implement a system of sound logic in which the radar creates different types of sound depending on the type, size, and proximity of the detected shapes.
+-Static sound development (Johnny)
+-Dynamic sound development (Group)  16 hours
+7. At this point, flashes of light will be omnidirectional.  This light logic will work similarly to the sound logic.
+-Static visuals development (Mara)
+-Dynamic visuals development (Group)  8 hours
+8.  Limit visual effects/ flashes of light in the direction of motion simulating the light of a forward-facing flashlight.  8 hours
+
+Phase 2- Local Multi-Player
+1. Implement two independently controllable shapes up to step 4 of phase 1.  4 hours
+2. Split the screen and generate a second controllable player.  8 hours
+
+Phase 3- Online Multi-Player ~2920 hours
+1. Allow independent players to establish a connection with a main server.
+2. Enable the server to communicate with the different devices and send/receive data. Establish a protocol for communication.
+2. The server keeps track of every object and controls the injections of new shapes.
+3. Players are sent a continuously updated copy of the game from the server.
+4. The actions of the player/changes of the state of the game are sent from each player's local game to the server which then updates the "master" version of the game held on the server.
+5. "Mask" glitching issues and inconsistencies between the server version and local versions.</p>
 
 </body>
 </html>
