@@ -17,15 +17,12 @@
 var mousex;
 var mousey;
 var canvas = document.getElementById("myCanvas");
-canvas.style.background = 'burlywood';
 var ctx = canvas.getContext("2d");
 var size = 10;
 var x = canvas.width/2;
 var y = canvas.height-30;
-//var ballSpeed=4;
 
 var d = Math.sqrt( (canvas.width/2)*(canvas.width/2) + (3*canvas.height/4)*(3*canvas.height/4));
-
 
 //arrow keys
 var rightPressed = false;
@@ -35,7 +32,6 @@ var downPressed = false;
 
 document.addEventListener("keydown", keyDownHandler, false);
 document.addEventListener("keyup", keyUpHandler, false);
-
 
 function keyDownHandler(e) {
     if(e.keyCode == 39) {
@@ -69,8 +65,8 @@ function keyUpHandler(e) {
 }
 
 function drawBall() {
-	console.log(x,y);
-	console.log(mousex,mousey);
+    console.log(x,y);
+    console.log(mousex,mousey);
     ctx.beginPath();
     ctx.arc(x, y, size, 0, Math.PI*2);
 
@@ -81,10 +77,9 @@ function drawBall() {
     ctx.closePath();
 }
     
-    
 function drawSquare() {
     console.log(x,y);
-	console.log(mousex,mousey);
+    console.log(mousex,mousey);
     ctx.beginPath();
     ctx.fillRect (x, y, size, size);
     ctx.fillStyle = "#0095DD";
@@ -92,14 +87,11 @@ function drawSquare() {
     ctx.closePath();
     
 }
-
-    
     
 //function speed() {
     //var dist = Math.sqrt(pow(mousex-x,2)+pow(mousey-y,2));
     //return dist
 //}
-
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -107,6 +99,16 @@ function draw() {
     drawSquare();
     
     var dist = Math.sqrt(Math.pow(mousex-x,2)+Math.pow(mousey-y,2));
+
+    var maxDist= Math.sqrt(Math.pow(canvas.width,2)+Math.pow(canvas.height,2));
+    
+    var speedFactor=10*((maxDist-dist)/maxDist+1);
+
+    if(mousex>0 && mousex<canvas.width &&mousey>0 &&mousey<canvas.height){
+    x=(mousex-x)/speedFactor+x;
+    y=(mousey-y)/speedFactor+y;
+    }
+
     var speed = dist/50
 
     //arrowkeys
@@ -124,7 +126,9 @@ function draw() {
         y -= speed;
     }
 
+   
 //mouse
+<<<<<<< Updated upstream
     if(mousex>x+(size-1) && x < canvas.width-(size*2)) {
     	 x += speed;
     }
@@ -139,11 +143,27 @@ function draw() {
     else if(mousey<y+9 && y > 0) {
         y -= speed;
     }
+=======
+>>>>>>> Stashed changes
 
+    // if(mousex>x+size && x < canvas.width-(size*2)) {
+    //   x += speed;
+    // }
+    // else if(mousex<x-size  && x > 0)
+    // {
+    //  x -= speed;
+    // }
+
+    // if(mousey>y+size && y < canvas.height-(size*2)) {
+    //     y += speed;
+    // }
+    // else if(mousey<y -size&& y > 0) {
+    //     y -= speed;
+    // }
 }
 
 setInterval(draw, 10);
-	
+    
 </script>
 
 </body>
