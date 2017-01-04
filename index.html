@@ -5,7 +5,7 @@
 </head>
 <body>
 
-<canvas id="myCanvas" onmousemove="myFunction(event)" width="750" height="750"></canvas>
+<canvas id="myCanvas" onmousemove="myFunction(event)" width="1000" height="500"></canvas>
 
 <script>
 
@@ -17,6 +17,7 @@
 var mousex;
 var mousey;
 var canvas = document.getElementById("myCanvas");
+canvas.style.background = 'burlywood';
 var ctx = canvas.getContext("2d");
 var size = 10;
 var x = canvas.width/2;
@@ -29,6 +30,37 @@ var rightPressed = false;
 var leftPressed = false;
 var upPressed = false;
 var downPressed = false;
+
+//Shape size
+var maxsize = 50;
+var minsize = 10;
+
+//Shape object
+var Shape = function(id,x,y,size){
+    console.log("Shape created");
+    this.id = id;
+    this.x = x;
+    this.y = y;
+    this.size = size;
+};
+
+//Method for shape to draw itself
+Shape.prototype.draw = function(ctx) {
+    ctx.beginPath();
+    ctx.fillRect (this.x, this.y, this.size, this.size);
+    ctx.fillStyle = "blue";
+    ctx.fill();
+    ctx.closePath();
+    console.log("Square number " + this.id + " has been created at: "+this.x+","+ this.y);
+};
+
+//Array for storing shapes
+var shapes = [];
+for(var i=0; i<10; i++){
+    var size = generateSize();
+    var shape = new Shape(i+1,generateX(size),generateY(size),size);
+    shapes.push(shape);
+}
 
 document.addEventListener("keydown", keyDownHandler, false);
 document.addEventListener("keyup", keyUpHandler, false);
@@ -64,29 +96,44 @@ function keyUpHandler(e) {
     }
 }
 
-function drawBall() {
-    console.log(x,y);
-    console.log(mousex,mousey);
-    ctx.beginPath();
-    ctx.arc(x, y, size, 0, Math.PI*2);
-
-    ctx.fillStyle = "#0095DD";
-    ctx.fill();
-
-    //ctx.strokeRect(x,y,50,50);
-    ctx.closePath();
+//Method to generate random X coordinate for a shape
+function generateX(size){
+return Math.random() * (canvas.width-size);
 }
-    
-function drawSquare() {
-    console.log(x,y);
-    console.log(mousex,mousey);
-    ctx.beginPath();
-    ctx.fillRect (x, y, size, size);
-    ctx.fillStyle = "#0095DD";
-    ctx.fill();
-    ctx.closePath();
-    
+
+//Method to generate random Y coordinate for a shape
+function generateY(size){
+return Math.random() * (canvas.height-size);
 }
+
+//Method to generate random size for a shape
+function generateSize(){
+return Math.random() * (maxsize - minsize) + minsize;
+}
+
+// function drawBall() {
+//     console.log(x,y);
+//     console.log(mousex,mousey);
+//     ctx.beginPath();
+//     ctx.arc(x, y, size, 0, Math.PI*2);
+
+//     ctx.fillStyle = "#0095DD";
+//     ctx.fill();
+
+//     //ctx.strokeRect(x,y,50,50);
+//     ctx.closePath();
+// }
+    
+// function drawSquare() {
+//     console.log(x,y);
+//     console.log(mousex,mousey);
+//     ctx.beginPath();
+//     ctx.fillRect (x, y, size, size);
+//     ctx.fillStyle = "#0095DD";
+//     ctx.fill();
+//     ctx.closePath();
+    
+// }
     
 //function speed() {
     //var dist = Math.sqrt(pow(mousex-x,2)+pow(mousey-y,2));
@@ -94,10 +141,15 @@ function drawSquare() {
 //}
 
 function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    //ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    drawSquare();
-    
+    // for(var i=0; i<shapes.length; i++){
+    //     shapes[i].draw();
+    // }  
+    shapes.forEach(function(shape){
+        shape.draw(ctx);
+    });
+
     var dist = Math.sqrt(Math.pow(mousex-x,2)+Math.pow(mousey-y,2));
 
     var maxDist= Math.sqrt(Math.pow(canvas.width,2)+Math.pow(canvas.height,2));
