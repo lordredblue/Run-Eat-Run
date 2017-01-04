@@ -1,30 +1,215 @@
+<!DOCTYPE html>
 <html>
-  <head>
-    <title>Sample Page 1/3/17</title>
-  </head>
-  
-  <body>
-    This is example text.
-    <b>Sample Bold</b>
-    <div id="Test">
-      Some text
-    </div>
-    <div id="div2" style="width:200px;height:300px;background-color:red"></div>
-    <script>
-      //Test.innerHTML="new text";
+<head>
+    <title>Web Audio API Test</title>
+</head>
+<body>
 
-      function changediv(text){
-        var divid = document.getElementById("Test");
-        divid.innerHTML= text;
-      }
-      window.setInterval(function(){
-        changediv(new Date());
-      }, 1000);
-      
-      div2.addEventListener("click",function(event){
-        Test.innerHTML = event.clientX + "," + event.clientY;
-      });
-    </script>
+<canvas id="myCanvas" onmousemove="myFunction(event)" width="750" height="750"></canvas>
+
+<script>
+
+ function myFunction(e) {
+     mousex = e.clientX;
+     mousey = e.clientY;
+    }
+
+var mousex;
+var mousey;
+var canvas = document.getElementById("myCanvas");
+var ctx = canvas.getContext("2d");
+var ballRadius = 10;
+var x = canvas.width/2;
+var y = canvas.height-30;
+//var ballSpeed=4;
+
+var d = Math.sqrt( (canvas.width/2)*(canvas.width/2) + (3*canvas.height/4)*(3*canvas.height/4));
+
+
     
-  </body>
+
+//audio signal path
+var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+//oscillator1
+var oscillator1 = audioCtx.createOscillator();
+oscillator1.type = 'sine';
+oscillator1.frequency.value = 440; // value in hertz
+
+var gainNode1 = audioCtx.createGain();
+
+var soundX1=  canvas.width/2;
+var soundY1= canvas.height/4;
+
+// //oscillator2
+// var oscillator2 = audioCtx.createOscillator();
+// oscillator2.type = 'sine';
+// oscillator2.frequency.value = 554.37; // value in hertz
+
+// var gainNode2 = audioCtx.createGain();
+
+// var soundX2=  canvas.width/4;
+// var soundY2= canvas.height/2;
+
+
+var merger = audioCtx.createChannelMerger(4);
+//var panNode = audioCtx.createStereoPanner();
+
+oscillator1.connect(gainNode1);
+gainNode1.connect(merger,0);
+
+// oscillator2.connect(gainNode2);
+// gainNode2.connect(merger,1);
+
+merger.connect(audioCtx.destination);
+oscillator1.start();
+
+// oscillator2.start();
+// var panner = audioCtx.createPanner();
+
+//arrow keys
+var rightPressed = false;
+var leftPressed = false;
+var upPressed = false;
+var downPressed = false;
+
+document.addEventListener("keydown", keyDownHandler, false);
+document.addEventListener("keyup", keyUpHandler, false);
+
+// canvas.addEventListener("mousemove", mouseMoveHandler);
+
+
+function keyDownHandler(e) {
+    if(e.keyCode == 39) {
+        rightPressed = true;
+    }
+    else if(e.keyCode == 37) {
+        leftPressed = true;
+    }
+     if(e.keyCode == 40) {
+        upPressed = true;
+    }
+    else if(e.keyCode == 38) {
+        downPressed = true;
+    }
+}
+
+function keyUpHandler(e) {
+    if(e.keyCode == 39) {
+        rightPressed = false;
+    }
+    else if(e.keyCode == 37) {
+        leftPressed = false;
+    }
+
+     if(e.keyCode == 40) {
+        upPressed = false;
+    }
+    else if(e.keyCode == 38) {
+        downPressed = false;
+    }
+}
+
+function drawBall() {
+	console.log(x,y);
+	console.log(mousex,mousey);
+    ctx.beginPath();
+    ctx.arc(x, y, ballRadius, 0, Math.PI*2);
+
+    ctx.fillStyle = "#0095DD";
+    ctx.fill();
+
+    //ctx.strokeRect(x,y,50,50);
+    ctx.closePath();
+}
+    
+    
+function drawSquare(ctx, x, y, s) {
+    ctx.strokeRect (x, y, s, s);
+}
+
+function drawSoundSources() {
+	ctx.beginPath();
+	ctx.arc(soundX1, soundY1, ballRadius, 0, Math.PI*2);
+	ctx.fillStyle = "#0095DD";
+    ctx.fill();
+	ctx.closePath();
+//gain node adjustment
+    var a = x - soundX1;
+	var b = y - soundY1;
+	var c = Math.sqrt( a*a + b*b );
+	var gainAdjustment=((d-c)/d)-.2;
+
+	if(gainAdjustment<0)
+	{
+		gainAdjustment=0;
+	}
+
+	gainNode1.gain.value = 0;
+
+	// var a = x - soundX2
+	// var b = y - soundY2
+	// var c = Math.sqrt( a*a + b*b );
+
+	// gainNode2.gain.value = (d-c)/d;
+
+
+
+   
+}
+    
+    
+//function speed() {
+    //var dist = Math.sqrt(pow(mousex-x,2)+pow(mousey-y,2));
+    //return dist
+//}
+
+
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    drawBall();
+	drawSoundSources();
+    
+    var dist = Math.sqrt(Math.pow(mousex-x,2)+Math.pow(mousey-y,2));
+    var speed = dist/50
+
+    //arrowkeys
+    if(rightPressed && x < canvas.width-(ballRadius*2)) {
+        x += speed;
+    }
+    else if(leftPressed && x > 0) {
+        x -= speed;
+    }
+
+    if(upPressed && y < canvas.height-(ballRadius*2)) {
+        y += speed;
+    }
+    else if(downPressed && y > 0) {
+        y -= speed;
+    }
+
+//mouse
+    if(mousex>x+ballRadius && x < canvas.width-(ballRadius*2)) {
+    	 x += speed;
+    }
+    else if(mousex<x-ballRadius  && x > 0)
+    {
+    	x -= speed;
+    }
+
+    if(mousey>y+ballRadius && y < canvas.height-(ballRadius*2)) {
+        y += speed;
+    }
+    else if(mousey<y -ballRadius&& y > 0) {
+        y -= speed;
+    }
+
+}
+
+setInterval(draw, 10);
+	
+</script>
+
+</body>
 </html>
