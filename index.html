@@ -128,7 +128,7 @@ function draw() {
     if(mousex>x+size && x < canvas.width-(size*2)) {
     	 x += speed;
     }
-    else if(mousex<x-size  && x > 0)
+    else if(mousex<x  && x > 0)
     {
     	x -= speed;
     }
@@ -136,7 +136,7 @@ function draw() {
     if(mousey>y+size && y < canvas.height-(size*2)) {
         y += speed;
     }
-    else if(mousey<y -size&& y > 0) {
+    else if(mousey<y && y > 0) {
         y -= speed;
     }
 
