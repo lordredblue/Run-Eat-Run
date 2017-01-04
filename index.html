@@ -128,7 +128,7 @@ function drawSquare() {
     console.log(x,y);
 	console.log(mousex,mousey);
     ctx.beginPath();
-    ctx.strokeRect (x, y, size, size);
+    ctx.fillRect (x, y, size, size);
     ctx.fillStyle = "#0095DD";
     ctx.fill();
     ctx.closePath();
@@ -175,7 +175,7 @@ function drawSoundSources() {
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    drawBall();
+    drawSquare();
 	drawSoundSources();
     
     var dist = Math.sqrt(Math.pow(mousex-x,2)+Math.pow(mousey-y,2));
