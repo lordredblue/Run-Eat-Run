@@ -23,21 +23,20 @@
 </head>
 <body>
 
-<canvas id="myCanvas" onmousemove="myFunction(event) "width="1000" height="750" ></canvas>
+<canvas id="myCanvas" width="1000" height="750" ></canvas>
     
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/randomcolor/0.4.4/randomColor.js"></script>
 
 <script>
- function myFunction(e) {
-     mousex = e.clientX;
-     mousey = e.clientY;
-    }
-
 var mousex;
 var mousey;
 var canvas = document.getElementById("myCanvas");
 canvas.style.background = 'black';
+canvas.addEventListener('mousemove', function(event){
+    mousex = event.clientX-canvas.getBoundingClientRect().left;
+    mousey = event.clientY-canvas.getBoundingClientRect().top;
+  });
 var ctx = canvas.getContext("2d");
 //ctx.canvas.width  = window.innerWidth;
 //ctx.canvas.height = window.innerHeight;
