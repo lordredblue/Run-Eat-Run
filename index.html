@@ -2,10 +2,18 @@
 <html>
 <head>
     <title>Run Eat Run Test</title>
+    <style>
+        html,body {
+            margin: 0;
+            padding: 0;
+            border: 0;
+        }
+    </style>
 </head>
 <body>
 
 <canvas id="myCanvas" onmousemove="myFunction(event)" width="1000" height="500"></canvas>
+    
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/randomcolor/0.4.4/randomColor.js"></script>
 
@@ -70,7 +78,7 @@ for(var i=0; i<10; i++){
 //Player shape
 var player = new Shape(0,player_x,player_y,player_size,randomColor());
     
-//document.addEventListener("resize");
+document.addEventListener("resizeBrowser", browserSizeHandler, false);
 document.addEventListener("keydown", keyDownHandler, false);
 document.addEventListener("keyup", keyUpHandler, false);
 
@@ -105,6 +113,11 @@ function keyUpHandler(e) {
     }
 }
 
+function resizeBrowser (){
+    
+}
+
+    
 //Method to generate random X coordinate for a shape
 function generateX(size){
 return Math.random() * (canvas.width-size);
