@@ -72,7 +72,11 @@ Shape.prototype.draw = function(ctx) {
     ctx.closePath();
     //console.log("Square number " + this.id + " has been created at: "+this.x+","+ this.y);
 };
-
+    
+Shape.prototype.changeSize = function(ratio) {
+    this.size*=ratio;
+};
+    
 //Array for storing shapes
 var shapes = [];
 for(var i=0; i<10; i++){
@@ -129,9 +133,9 @@ function resize_canvas(){
                 shapes.forEach(function(shape){
                     shape.x*=changeInWidthRatio;
                     shape.y*=changeInHeightRatio;
-                    shape.size*=changeInHeightRatio;
+                    shape.changeSize(changeInHeightRatio);
                 });
-                player.size*=changeInHeightRatio;
+                player.changeSize(changeInHeightRatio);
         } else {
             canvas.width=window.innerWidth;
             canvas.height=canvas.width/ratio;
@@ -140,13 +144,17 @@ function resize_canvas(){
                 shapes.forEach(function(shape){
                     shape.x*=changeInWidthRatio;
                     shape.y*=changeInHeightRatio;
+                    shape.changeSize(changeInWidthRatio);
                     shape.size*=changeInWidthRatio;
                 });
+                player.changeSize(changeInWidthRatio);
         }
         
     }
 
 }
+    
+    
     
 
 
