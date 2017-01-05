@@ -41,7 +41,6 @@ var player_x = canvas.width/2;
 var player_y = canvas.height-30;
 var ratio=16/9;
 
-
 //var d = Math.sqrt( (canvas.width/2)*(canvas.width/2) + (3*canvas.height/4)*(3*canvas.height/4));
 
 //arrow keys
@@ -83,7 +82,7 @@ for(var i=0; i<10; i++){
 
 //Player shape
 var player = new Shape(0,player_x,player_y,player_size,randomColor());
-    
+
 document.addEventListener("keydown", keyDownHandler, false);
 document.addEventListener("keyup", keyUpHandler, false);
 
@@ -122,7 +121,7 @@ function resize_canvas(){
     var oldCanvasWidth = canvas.width;
     var oldCanvasHeight = canvas.height;
     if (canvas.width  != window.innerWidth || canvas.height != window.innerHeight) {
-        if (window.innerWidth>window.innerHeight) {
+        if (window.innerWidth>window.innerHeight*ratio) {
             canvas.height=window.innerHeight;
             canvas.width=canvas.height*ratio;
             var changeInWidthRatio=canvas.width/oldCanvasWidth;
@@ -132,6 +131,7 @@ function resize_canvas(){
                     shape.y*=changeInHeightRatio;
                     shape.size*=changeInHeightRatio;
                 });
+                player.size*=changeInHeightRatio;
         } else {
             canvas.width=window.innerWidth;
             canvas.height=canvas.width/ratio;
@@ -147,6 +147,8 @@ function resize_canvas(){
     }
 
 }
+    
+
 
     
 //Method to generate random X coordinate for a shape
