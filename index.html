@@ -39,7 +39,7 @@ ctx.canvas.height = window.innerHeight;
 var player_size = 20;
 var player_x = canvas.width/2;
 var player_y = canvas.height-30;
-
+var ratio=16/9;
 
 
 //var d = Math.sqrt( (canvas.width/2)*(canvas.width/2) + (3*canvas.height/4)*(3*canvas.height/4));
@@ -84,7 +84,6 @@ for(var i=0; i<10; i++){
 //Player shape
 var player = new Shape(0,player_x,player_y,player_size,randomColor());
     
-//document.addEventListener("resizeBrowser", browserSizeHandler, false);
 document.addEventListener("keydown", keyDownHandler, false);
 document.addEventListener("keyup", keyUpHandler, false);
 
@@ -119,9 +118,35 @@ function keyUpHandler(e) {
     }
 }
 
-//function resizeBrowser (){
-//    
-//}
+function resize_canvas(){
+    var oldCanvasWidth = canvas.width;
+    var oldCanvasHeight = canvas.height;
+    if (canvas.width  != window.innerWidth || canvas.height != window.innerHeight) {
+        if (window.innerWidth>window.innerHeight) {
+            canvas.height=window.innerHeight;
+            canvas.width=canvas.height*ratio;
+            var changeInWidthRatio=canvas.width/oldCanvasWidth;
+            var changeInHeightRatio=canvas.height/oldCanvasHeight;
+                shapes.forEach(function(shape){
+                    shape.x*=changeInWidthRatio;
+                    shape.y*=changeInHeightRatio;
+                    shape.size*=changeInHeightRatio;
+                });
+        } else {
+            canvas.width=window.innerWidth;
+            canvas.height=canvas.width/ratio;
+            var changeInWidthRatio=canvas.width/oldCanvasWidth;
+            var changeInHeightRatio=canvas.height/oldCanvasHeight;
+                shapes.forEach(function(shape){
+                    shape.x*=changeInWidthRatio;
+                    shape.y*=changeInHeightRatio;
+                    shape.size*=changeInWidthRatio;
+                });
+        }
+        
+    }
+
+}
 
     
 //Method to generate random X coordinate for a shape
@@ -170,6 +195,7 @@ return Math.random() * (maxsize - minsize) + minsize;
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    resize_canvas();
     // for(var i=0; i<shapes.length; i++){
     //     shapes[i].draw();
     // }  
