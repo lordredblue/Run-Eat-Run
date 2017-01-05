@@ -1,14 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Web Audio API Test</title>
+    <title>Run Eat Run Test</title>
 </head>
 <body>
 
 <canvas id="myCanvas" onmousemove="myFunction(event)" width="1000" height="500"></canvas>
 
-<script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/randomcolor/0.4.4/randomColor.js"></script>
 
+<script>
  function myFunction(e) {
      mousex = e.clientX;
      mousey = e.clientY;
@@ -17,11 +18,11 @@
 var mousex;
 var mousey;
 var canvas = document.getElementById("myCanvas");
-canvas.style.background = 'burlywood';
+canvas.style.background = 'black';
 var ctx = canvas.getContext("2d");
-var size = 10;
-var x = canvas.width/2;
-var y = canvas.height-30;
+var player_size = 20;
+var player_x = canvas.width/2;
+var player_y = canvas.height-30;
 
 var d = Math.sqrt( (canvas.width/2)*(canvas.width/2) + (3*canvas.height/4)*(3*canvas.height/4));
 
@@ -32,23 +33,24 @@ var upPressed = false;
 var downPressed = false;
 
 //Shape size
-var maxsize = 50;
-var minsize = 10;
+var maxsize = 60;
+var minsize = 20;
 
 //Shape object
-var Shape = function(id,x,y,size){
+var Shape = function(id,x,y,size,color){
     console.log("Shape created");
     this.id = id;
     this.x = x;
     this.y = y;
     this.size = size;
+    this.color = color;
 };
 
 //Method for shape to draw itself
 Shape.prototype.draw = function(ctx) {
     ctx.beginPath();
     ctx.fillRect (this.x, this.y, this.size, this.size);
-    ctx.fillStyle = "blue";
+    ctx.fillStyle = this.color;
     ctx.fill();
     ctx.closePath();
     console.log("Square number " + this.id + " has been created at: "+this.x+","+ this.y);
@@ -58,9 +60,11 @@ Shape.prototype.draw = function(ctx) {
 var shapes = [];
 for(var i=0; i<10; i++){
     var size = generateSize();
-    var shape = new Shape(i+1,generateX(size),generateY(size),size);
-    shapes.push(shape);
+    shapes.push(new Shape(i+1,generateX(size),generateY(size),size, randomColor()));
 }
+
+//Player shape
+var player = new Shape(0,player_x,player_y,player_size,randomColor());
 
 document.addEventListener("keydown", keyDownHandler, false);
 document.addEventListener("keyup", keyUpHandler, false);
@@ -141,7 +145,7 @@ return Math.random() * (maxsize - minsize) + minsize;
 //}
 
 function draw() {
-    //ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // for(var i=0; i<shapes.length; i++){
     //     shapes[i].draw();
@@ -149,36 +153,40 @@ function draw() {
     shapes.forEach(function(shape){
         shape.draw(ctx);
     });
+    player.draw(ctx);
 
-    var dist = Math.sqrt(Math.pow(mousex-x,2)+Math.pow(mousey-y,2));
+    //var prev_x = player.x;
+    //var prev_y = player.y;
+    //var size = player.size;
+
+    var dist = Math.sqrt(Math.pow(mousex-player.x,2)+Math.pow(mousey-player.y,2));
 
     var maxDist= Math.sqrt(Math.pow(canvas.width,2)+Math.pow(canvas.height,2));
     
     var speedFactor=10*((maxDist-dist)/maxDist+1);
 
     if(mousex>0 && mousex<canvas.width &&mousey>0 &&mousey<canvas.height){
-    x=(mousex-x)/speedFactor+x;
-    y=(mousey-y)/speedFactor+y;
+    player.x=(mousex-player.x)/speedFactor+player.x;
+    player.y=(mousey-player.y)/speedFactor+player.y;
     }
 
     var speed = dist/50
 
     //arrowkeys
     if(rightPressed && x < canvas.width-(size*2)) {
-        x += speed;
+        player.x += speed;
     }
     else if(leftPressed && x > 0) {
-        x -= speed;
+        player.x -= speed;
     }
 
     if(upPressed && y < canvas.height-(size*2)) {
-        y += speed;
+        player.y += speed;
     }
     else if(downPressed && y > 0) {
-        y -= speed;
+        player.y -= speed;
     }
 
-   
     //mouse
 
     // if(mousex>x+(size-1) && x < canvas.width-(size*2)) {
@@ -211,6 +219,7 @@ function draw() {
     // else if(mousey<y -size&& y > 0) {
     //     y -= speed;
     // }
+    //ctx.clearRect(prev_x,prev_y,size,size);
 }
 
 setInterval(draw, 10);
