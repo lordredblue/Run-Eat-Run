@@ -76,6 +76,30 @@ Shape.prototype.draw = function(ctx) {
     ctx.closePath();
     //console.log("Square number " + this.id + " has been created at: "+this.x+","+ this.y);
 };
+
+// Shape.prototype.getTopLeftCorner = function(){
+//     var point = {x: this.x, y: this.y};
+//     return point;
+// };
+
+// Shape.prototype.getTopRightCorner = function(){
+//     var point = {x: this.x+this.size, y: this.y};
+//     return point;
+// };
+
+// Shape.prototype.getBottomLeftCorner = function(){
+//     var point = {x: this.x, y: this.y+this.size};
+//     return point;
+// };
+
+// Shape.prototype.getBottomRightCorner = function(){
+//     var point = {x: this.x+this.size, y: this.y+this.size};
+//     return point;
+// };
+
+Shape.prototype.getCenter = function(){
+    return {x: this.x+(this.size/2), y: this.y+(this.size/2)};
+};
     
 Shape.prototype.changeSize = function(ratio) {
     this.size*=ratio;
@@ -158,11 +182,26 @@ function resize_canvas(){
     }
 
 }
-    
-    
-    
 
-
+function getDistance(x1,y1,x2,y2){
+    return Math.sqrt(Math.pow(x1-x2,2)+Math.pow(y1-y2,2));
+}
+    
+ function checkCollisions(){
+    for(var i=0; i<shapes.length; i++){
+        shape=shapes[i];
+        if(getDistance(player.getCenter().x,player.getCenter().y,shape.getCenter().x,shape.getCenter().y)<=(player.size+shape.size)){
+            console.log("Collision!");
+            eatShape(i,shape);
+            //return true;
+        }
+    }
+ }   
+    
+function eatShape(index,shape){
+    shapes.splice(index,1);
+    player.size+=(shape.size/2);
+}
     
 //Method to generate random X coordinate for a shape
 function generateX(size){
@@ -214,6 +253,7 @@ function draw() {
     // for(var i=0; i<shapes.length; i++){
     //     shapes[i].draw();
     // }  
+    checkCollisions();
     shapes.forEach(function(shape){
         shape.draw(ctx);
     });
