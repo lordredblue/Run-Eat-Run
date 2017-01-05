@@ -20,11 +20,15 @@ var mousey;
 var canvas = document.getElementById("myCanvas");
 canvas.style.background = 'black';
 var ctx = canvas.getContext("2d");
+ctx.canvas.width  = window.innerWidth-20;
+ctx.canvas.height = window.innerHeight-20;
 var player_size = 20;
 var player_x = canvas.width/2;
 var player_y = canvas.height-30;
 
-var d = Math.sqrt( (canvas.width/2)*(canvas.width/2) + (3*canvas.height/4)*(3*canvas.height/4));
+
+
+//var d = Math.sqrt( (canvas.width/2)*(canvas.width/2) + (3*canvas.height/4)*(3*canvas.height/4));
 
 //arrow keys
 var rightPressed = false;
@@ -65,7 +69,8 @@ for(var i=0; i<10; i++){
 
 //Player shape
 var player = new Shape(0,player_x,player_y,player_size,randomColor());
-
+    
+//document.addEventListener("resize");
 document.addEventListener("keydown", keyDownHandler, false);
 document.addEventListener("keyup", keyUpHandler, false);
 
@@ -146,7 +151,6 @@ return Math.random() * (maxsize - minsize) + minsize;
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-
     // for(var i=0; i<shapes.length; i++){
     //     shapes[i].draw();
     // }  
@@ -223,6 +227,7 @@ function draw() {
 }
 
 setInterval(draw, 10);
+    
     
 </script>
 
