@@ -292,7 +292,7 @@ function draw() {
     var speedFactor=10*((maxDist-dist)/maxDist+1);
     
 
-    if(mousex>0 && mousex<canvas.width &&mousey>0 &&mousey<canvas.height){
+    if(mousex>0 && mousex<canvas.width-(player.size/2) &&mousey>0 &&mousey<canvas.height){
     player.x=(mousex-player.x)/speedFactor+player.x;
     player.y=(mousey-player.y)/speedFactor+player.y;
     }
@@ -354,6 +354,26 @@ function getRandomIntInclusive(min, max) {
   max = Math.floor(max);
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
+    
+Shape.prototype.growShrink = function(ctx, limit) {
+    var shape=this;
+    var intvl = window.setInterval(function() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if(shape.size == limit) {
+            clearInterval(intvl);
+        } else {
+            ctx.fillStyle = shape.color;
+            console.log(ctx.fillStyle);
+            ctx.fillRect (shape.x, shape.y, shape.size, shape.size);
+            if (limit == 0) {
+                shape.size-=1
+            } else {
+                shape.size+=1
+            }
+        }
+    }
+,10);
+}; 
 
 setInterval(draw, 10);
     
