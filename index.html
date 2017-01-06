@@ -27,8 +27,8 @@
     
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/randomcolor/0.4.4/randomColor.js"></script>
-
 <script>
+"use strict";
 var mousex;
 var mousey;
 var canvas = document.getElementById("myCanvas");
@@ -71,11 +71,10 @@ var Shape = function(x,y,size,color){
 
 //Method for shape to draw itself
 Shape.prototype.draw = function(ctx) {
-    ctx.beginPath();
-    ctx.fillRect (this.x, this.y, this.size, this.size);
+    //ctx.beginPath();
     ctx.fillStyle = this.color;
-    ctx.fill();
-    ctx.closePath();
+    ctx.fillRect (this.x, this.y, this.size, this.size);
+    //ctx.closePath();
     //console.log("Square number " + this.id + " has been created at: "+this.x+","+ this.y);
 };
 
@@ -107,11 +106,24 @@ Shape.prototype.changeSize = function(ratio) {
     this.size*=ratio;
 };
     
+    
+//function color() {
+//    do {
+//        var c = randomColor();
+//    }
+//    while (c=="#000000");
+//    console.log("c");
+//    console.log(c);
+//}
+
+    
 //Array for storing shapes
 var shapes = [];
 for(var i=0; i<numShapes; i++){
     var size = generateSize();
-    shapes.push(new Shape(generateX(size),generateY(size),size, randomColor()));
+    shapes.push(new Shape(generateX(size),generateY(size),size,randomColor()));
+    console.log("shape");
+    console.log(shapes[i].color);
 }
 
 //Player shape
@@ -191,7 +203,7 @@ function getDistance(x1,y1,x2,y2){
     
  function checkCollisions(){
     for(var i=0; i<shapes.length; i++){
-        shape=shapes[i];
+        var shape=shapes[i];
         var half=(shape.size)/2;
         if(getDistance(player.x,player.y,shape.getCenter().x,shape.getCenter().y)<=half
         || getDistance(player.x+player.size,player.y,shape.getCenter().x,shape.getCenter().y)<=half
