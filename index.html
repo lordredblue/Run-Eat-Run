@@ -44,6 +44,9 @@ var player_size = 20;
 var player_x = canvas.width/2;
 var player_y = canvas.height-30;
 var ratio=16/9;
+var maxNumShapes=30;
+var minNumShapes=20;
+var numShapes = getRandomIntInclusive(minNumShapes,maxNumShapes);
 
 //var d = Math.sqrt( (canvas.width/2)*(canvas.width/2) + (3*canvas.height/4)*(3*canvas.height/4));
 
@@ -58,9 +61,8 @@ var maxsize = 60;
 var minsize = 20;
 
 //Shape object
-var Shape = function(id,x,y,size,color){
+var Shape = function(x,y,size,color){
     console.log("Shape created");
-    this.id = id;
     this.x = x;
     this.y = y;
     this.size = size;
@@ -107,13 +109,13 @@ Shape.prototype.changeSize = function(ratio) {
     
 //Array for storing shapes
 var shapes = [];
-for(var i=0; i<10; i++){
+for(var i=0; i<numShapes; i++){
     var size = generateSize();
-    shapes.push(new Shape(i+1,generateX(size),generateY(size),size, randomColor()));
+    shapes.push(new Shape(generateX(size),generateY(size),size, randomColor()));
 }
 
 //Player shape
-var player = new Shape(0,player_x,player_y,player_size,randomColor());
+var player = new Shape(player_x,player_y,player_size,randomColor());
 
 document.addEventListener("keydown", keyDownHandler, false);
 document.addEventListener("keyup", keyUpHandler, false);
@@ -190,7 +192,15 @@ function getDistance(x1,y1,x2,y2){
  function checkCollisions(){
     for(var i=0; i<shapes.length; i++){
         shape=shapes[i];
-        if(getDistance(player.getCenter().x,player.getCenter().y,shape.getCenter().x,shape.getCenter().y)<=(player.size+shape.size)/2){
+        var half=(shape.size)/2;
+        if(getDistance(player.x,player.y,shape.getCenter().x,shape.getCenter().y)<=half
+        || getDistance(player.x+player.size,player.y,shape.getCenter().x,shape.getCenter().y)<=half
+        || getDistance(player.x,player.y+player.size,shape.getCenter().x,shape.getCenter().y)<=half
+        || getDistance(player.x+player.size,player.y+player.size,shape.getCenter().x,shape.getCenter().y)<=half
+        || getDistance(player.getCenter().x,player.getCenter().y,shape.getCenter().x,shape.getCenter().y)
+        <=(player.size+shape.size)/2
+        )
+        {
             console.log("Collision!");
             eatShape(i,shape);
             //return true;
@@ -325,6 +335,12 @@ function draw() {
     //     y -= speed;
     // }
     //ctx.clearRect(prev_x,prev_y,size,size);
+}
+    
+function getRandomIntInclusive(min, max) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 setInterval(draw, 10);
