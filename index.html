@@ -357,14 +357,13 @@ function getRandomIntInclusive(min, max) {
     
 Shape.prototype.growShrink = function(ctx, limit) {
     var shape=this;
-    var intvl = window.setInterval(function() {
+    var id = setInterval(function() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         if(shape.size == limit) {
-            clearInterval(intvl);
+            shape.draw(ctx);
+            clearInterval(id);
         } else {
-            ctx.fillStyle = shape.color;
-            console.log(ctx.fillStyle);
-            ctx.fillRect (shape.x, shape.y, shape.size, shape.size);
+            shape.draw(ctx);
             if (limit == 0) {
                 shape.size-=1
             } else {
@@ -374,7 +373,7 @@ Shape.prototype.growShrink = function(ctx, limit) {
     }
 ,10);
 }; 
-
+    
 setInterval(draw, 10);
     
     
