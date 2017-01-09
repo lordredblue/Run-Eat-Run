@@ -48,7 +48,7 @@ var maxNumShapes=30;
 var minNumShapes=20;
 var numShapes = getRandomIntInclusive(minNumShapes,maxNumShapes);
 var spinSpeed = 250;
-
+var spinLength = 200;
 //var d = Math.sqrt( (canvas.width/2)*(canvas.width/2) + (3*canvas.height/4)*(3*canvas.height/4));
 
 //arrow keys
@@ -277,7 +277,7 @@ function draw() {
     shapes.forEach(function(shape){
         shape.draw(ctx);
     });
-    if(collisioncheck == 1 && count < 200){
+    if(collisioncheck == 1 && count < spinLength){
             player.drawSpin(ctx);
             count++;
             //console.log("Spin");
