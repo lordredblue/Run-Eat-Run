@@ -73,23 +73,17 @@ var Shape = function(x,y,size,color){
 
 //Method for shape to draw itself
 Shape.prototype.draw = function(ctx) {
-    ctx.beginPath();
-    ctx.fillRect (this.x, this.y, this.size, this.size);
     ctx.fillStyle = this.color;
-    ctx.fill();
-    ctx.closePath();
+    ctx.fillRect (this.x, this.y, this.size, this.size);
     //console.log("Square number " + this.id + " has been created at: "+this.x+","+ this.y);
 };
 Shape.prototype.drawSpin = function(ctx) {
     ctx.save();
     var time = new Date();
-    ctx.translate(this.x,this.y);
-    ctx.rotate( ((Math.PI)/100)*time.getMilliseconds());
-    ctx.beginPath();
-    ctx.fillRect (0, 0, this.size, this.size);
+    ctx.translate((this.x + this.size/2),(this.y + this.size/2));
+    ctx.rotate( ((Math.PI)/200)*time.getMilliseconds());
+    ctx.fillRect (-this.size/2, -this.size/2, this.size, this.size);
     ctx.fillStyle = this.color;
-    ctx.fill();
-    ctx.closePath();
     ctx.restore();
 }
 
