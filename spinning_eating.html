@@ -276,7 +276,16 @@ function draw() {
     shapes.forEach(function(shape){
         shape.draw(ctx);
     });
-    
+    if(collisioncheck == 1 && count < 200){
+            player.drawSpin(ctx);
+            count++;
+            //console.log("Spin");
+        }else{
+            player.draw(ctx);
+            count = 0;
+            collisioncheck = 0;
+            //console.log("No spin");
+        }
 
     //var prev_x = player.x;
     //var prev_y = player.y;
@@ -293,16 +302,7 @@ function draw() {
     player.x=(mousex-player.x)/speedFactor+player.x;
     player.y=(mousey-player.y)/speedFactor+player.y;
     }
-    if(collisioncheck == 1 && count < 200){
-            player.drawSpin(ctx);
-            count++;
-            //console.log("Spin");
-        }else{
-            player.draw(ctx);
-            count = 0;
-            collisioncheck = 0;
-            //console.log("No spin");
-        }
+    
     var speed = dist/50
 
     //arrowkeys
