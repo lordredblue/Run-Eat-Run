@@ -47,7 +47,7 @@ var audioCtx = new AudioContext();
 //ctx.canvas.height = window.innerHeight;
 var player_size = 20;
 var player_x = canvas.width/2;
-var player_y = canvas.height-30;
+var player_y = canvas.height/2;
 var ratio=16/9;
 var maxNumShapes=15;
 var minNumShapes=5;
@@ -81,6 +81,9 @@ var Shape = function(x,y,size,color,type,speedx,speedy,isPlayer){
     this.speedy=speedy;
 
     this.radarSize=1;
+    this.gainNode = audioCtx.createGain();
+    this.gainNode.connect(audioCtx.destination);
+    this.gainNode.gain.value = 1;
 
     if(this.isPlayer==false){
         this.source= audioCtx.createOscillator();
@@ -88,10 +91,8 @@ var Shape = function(x,y,size,color,type,speedx,speedy,isPlayer){
         this.source.frequency.value = getRandomIntInclusive(300, 2000); // value in hertz
 
         this.panner = audioCtx.createPanner();
-        this.gainNode = audioCtx.createGain();
         this.source.connect(this.panner);
         this.panner.connect(this.gainNode);
-        this.gainNode.connect(audioCtx.destination);
 
         this.gainNode.gain.value = 0;
         this.source.start();
@@ -301,11 +302,11 @@ function getDistance(x1,y1,x2,y2){
         <=(player.size+shape.size)/2) && shape.inCollision==undefined
         )
         {
-            player.StartAnimation(currentTime, 500, player.size + shape.size);
+            player.StartAnimation(currentTime, 500, player.size + shape.size,1);
             shape.speedx=0;
             shape.speedy=0;
             shape.inCollision = true;
-            shape.StartAnimation(currentTime, 500, 0);
+            shape.StartAnimation(currentTime, 500, 0,0);
         }
         //audio on/off for radar
         if(getDistance(player.x,player.y,shape.getCenter().x,shape.getCenter().y)<=player.radarSize
@@ -426,12 +427,15 @@ Shape.prototype.IsAnimating = function() {
     return this.AnimationStartTime != undefined;
 };
 
-Shape.prototype.StartAnimation = function(time, period, newSize) {
+Shape.prototype.StartAnimation = function(time, period, newSize,newGain) {
     this.AnimationStartTime = time;
     this.AnimationStartSize = this.size;
     this.AnimationStopSize = newSize;
+
+    this.AnimationStartGain=this.gainNode.gain.value;
+    this.AnimationStopGain=newGain;
     this.AnimationPeriod = period;
-//.source.frequency.value;
+
 
 };
 
@@ -446,7 +450,11 @@ Shape.prototype.DoAnimation = function(time) {
         {
             var sizeDelta = this.AnimationStopSize - this.AnimationStartSize;
 
+            var gainDelta= this.AnimationStopGain-this.AnimationStartGain;
+
             this.size = this.AnimationStartSize + sizeDelta *(deltaTime)/this.AnimationPeriod;
+
+            this.gainNode.gain.value=this.AnimationStartGain + gainDelta *(deltaTime)/this.AnimationPeriod;
         }
     }
 };
