@@ -64,8 +64,10 @@ var downPressed = false;
 //Shape size
 var maxsize = 60;
 var minsize = 20;
+var maxfreq=300;
+var minfreq=2000;
 var maxspeed = 3;
-var minspeed = -3
+var minspeed = -3;
 var spinSpeed = 250;
 
 //Shape object
@@ -88,7 +90,7 @@ var Shape = function(x,y,size,color,type,speedx,speedy,isPlayer){
     if(this.isPlayer==false){
         this.source= audioCtx.createOscillator();
         this.source.type = 'sine';
-        this.source.frequency.value = getRandomIntInclusive(300, 2000); // value in hertz
+        this.source.frequency.value = (maxfreq-minfreq)*(this.size-minsize)/(maxsize-minsize)+minfreq ; // value in hertz
 
         this.panner = audioCtx.createPanner();
         this.source.connect(this.panner);
@@ -132,8 +134,8 @@ var Shape = function(x,y,size,color,type,speedx,speedy,isPlayer){
     } else {
       this.listener.setOrientation(0,0,-1,0,1,0);
     }
-        this.listener.positionX.value = this.x;
-      this.listener.positionY.value = this.y;
+        this.listener.positionX.value = this.getCenter().x;
+      this.listener.positionY.value = this.getCenter().y;
       this.listener.positionZ.value = 50;
 
     }
@@ -153,9 +155,27 @@ Shape.prototype.draw = function(ctx) {
         ctx.arc(this.getCenter().x,this.getCenter().y,size/2, 0, 2 * Math.PI, false);
         ctx.fill();
     }
+
     //ctx.closePath();
     //console.log("Square number " + this.id + " has been created at: "+this.x+","+ this.y);
 };
+
+Shape.prototype.updateAudioLocation = function() {
+
+    //update audiolocation
+    if(this.isPlayer==false){
+    // this.panner.positionX.value = this.x;
+    // this.panner.positionY.value = this.y;
+     this.panner.setPosition(this.x,this.y,50);
+    console.log(this.panner.positionX.value,this.panner.positionY.value);
+} else if(this.isPlayer){
+    // this.listener.positionX.value = this.x;
+    // this.listener.positionY.value = this.y;
+     this.listener.setPosition(this.getCenter().x,this.getCenter().y,50);
+    console.log(this.listener.positionX.value,this.listener.positionY.value);
+}
+};
+
 
 Shape.prototype.drawSpin = function(ctx) {
     //ctx.save();
@@ -498,8 +518,10 @@ function draw() {
 
     shapes.forEach(function(shape){
             shape.draw(ctx);
+            shape.updateAudioLocation();
     });
     player.draw(ctx);
+    player.updateAudioLocation();
     player.drawRadar(ctx);
 
 
