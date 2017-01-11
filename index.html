@@ -38,6 +38,11 @@ canvas.addEventListener('mousemove', function(event){
     mousey = event.clientY-canvas.getBoundingClientRect().top;
   });
 var ctx = canvas.getContext("2d");
+
+//audioctx
+var AudioContext = window.AudioContext || window.webkitAudioContext;
+var audioCtx = new AudioContext();
+
 //ctx.canvas.width  = window.innerWidth;
 //ctx.canvas.height = window.innerHeight;
 var player_size = 20;
@@ -64,16 +69,76 @@ var minspeed = -3
 var spinSpeed = 250;
 
 //Shape object
-var Shape = function(x,y,size,color,type,speedx,speedy){
+var Shape = function(x,y,size,color,type,speedx,speedy,isPlayer){
     console.log("Shape created");
     this.x = x;
     this.y = y;
     this.size = size;
     this.color = color;
     this.type = type;
+    this.isPlayer=isPlayer;
     this.speedx=speedx;
     this.speedy=speedy;
+
+    this.radarSize=1;
+
+    if(this.isPlayer==false){
+        this.source= audioCtx.createOscillator();
+        this.source.type = 'sine';
+        this.source.frequency.value = getRandomIntInclusive(300, 2000); // value in hertz
+
+        this.panner = audioCtx.createPanner();
+        this.gainNode = audioCtx.createGain();
+        this.source.connect(this.panner);
+        this.panner.connect(this.gainNode);
+        this.gainNode.connect(audioCtx.destination);
+
+        this.gainNode.gain.value = 0;
+        this.source.start();
+
+        this.panner.panningModel = 'HRTF';
+        this.panner.distanceModel = 'inverse';
+        this.panner.refDistance = 5;
+        this.panner.maxDistance = 10000;
+        this.panner.rolloffFactor = 1;
+        this.panner.coneInnerAngle = 360;
+        this.panner.coneOuterAngle = 0;
+        this.panner.coneOuterGain = 0;
+
+    if(this.panner.orientationX) {
+          this.panner.orientationX.value = 1;
+          this.panner.orientationY.value = 0;
+          this.panner.orientationZ.value = 0;
+    } else {
+      this.panner.setOrientation(1,0,0);
+    }
+
+        this.panner.positionX.value = this.x;
+        this.panner.positionY.value = this.y;
+        this.panner.positionZ.value = 50;
+
+    }
+    else if(this.isPlayer==true){
+    this.listener = audioCtx.listener;
+
+    if(this.listener.forwardX) {
+      this.listener.forwardX.value = 0;
+      this.listener.forwardY.value = 0;
+      this.listener.forwardZ.value = -1;
+      this.listener.upX.value = 0;
+      this.listener.upY.value = 1;
+      this.listener.upZ.value = 0;
+    } else {
+      this.listener.setOrientation(0,0,-1,0,1,0);
+    }
+        this.listener.positionX.value = this.x;
+      this.listener.positionY.value = this.y;
+      this.listener.positionZ.value = 50;
+
+    }
 };
+
+
 
 //Method for shape to draw itself
 Shape.prototype.draw = function(ctx) {
@@ -144,7 +209,7 @@ Shape.prototype.changeSize = function(ratio) {
 var shapes = [];
 for(var i=0; i<numShapes; i++){
     var size = generateSize();
-    shapes.push(new Shape(generateX(size),generateY(size),size,randomColor(),"square",getRandomIntInclusive(minspeed,maxspeed),getRandomIntInclusive(minspeed,maxspeed)));
+    shapes.push(new Shape(generateX(size),generateY(size),size,randomColor(),"square",getRandomIntInclusive(minspeed,maxspeed),getRandomIntInclusive(minspeed,maxspeed),false));
     console.log("shape");
     console.log(shapes[i].color);
 }
@@ -242,8 +307,37 @@ function getDistance(x1,y1,x2,y2){
             shape.inCollision = true;
             shape.StartAnimation(currentTime, 500, 0);
         }
+        //audio on/off for radar
+        if(getDistance(player.x,player.y,shape.getCenter().x,shape.getCenter().y)<=player.radarSize
+        || getDistance(player.x+player.size,player.y,shape.getCenter().x,shape.getCenter().y)<=player.radarSize
+        || getDistance(player.x,player.y+player.size,shape.getCenter().x,shape.getCenter().y)<=player.radarSize
+        || getDistance(player.x+player.size,player.y+player.size,shape.getCenter().x,shape.getCenter().y)<=player.radarSize
+        || getDistance(player.getCenter().x,player.getCenter().y,shape.getCenter().x,shape.getCenter().y)
+        <=player.radarSize+shape.size
+        )
+        {
+        shape.gainNode.gain.value = 1;
+        }
+    else {
+        shape.gainNode.gain.value = 0;
+        }
     }
- }   
+ }
+
+Shape.prototype.drawRadar= function(ctx){
+
+var centerX=this.x+this.size/2;
+var centerY= this.y+this.size/2;
+var now= new Date();
+var sec=now.getSeconds();
+
+var radarRatio=(sec%5)/10;
+
+this.radarSize=this.size*(1+radarRatio);
+ctx.arc(centerX,centerY,this.radarSize,0,Math.PI*2,true);
+ctx.strokeStyle=this.color;
+ctx.stroke();
+}
     
 // function eatShape(index,shape){
 //     shapes.splice(index,1);
@@ -337,6 +431,8 @@ Shape.prototype.StartAnimation = function(time, period, newSize) {
     this.AnimationStartSize = this.size;
     this.AnimationStopSize = newSize;
     this.AnimationPeriod = period;
+//.source.frequency.value;
+
 };
 
 Shape.prototype.DoAnimation = function(time) {
@@ -358,6 +454,13 @@ Shape.prototype.DoAnimation = function(time) {
 
 Shape.prototype.StopAnimation = function() {
     this.size = this.AnimationStopSize;
+    if(this.AnimationStopSize===0)
+    {
+        this.gainNode.gain.value = 0;
+        this.source.stop();
+
+    }
+
 
     this.AnimationStartTime = undefined;
     this.AnimationStartSize = undefined;
@@ -376,7 +479,6 @@ function draw() {
     //     shapes[i].draw();
     // }  
     checkCollisions(currentTime);
-
     player.DoAnimation(currentTime);
     for(var i=0; i<shapes.length; i++){
         var shape = shapes[i];
@@ -390,7 +492,7 @@ function draw() {
             shape.draw(ctx);
     });
     player.draw(ctx);
-
+    player.drawRadar(ctx);
 
 
     //var prev_x = player.x;

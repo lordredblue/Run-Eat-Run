@@ -50,7 +50,7 @@ var player_y = canvas.height-30;
 var ratio=16/9;
 var maxNumShapes=30;
 var minNumShapes=20;
-var numShapes = 10;
+var numShapes = 17;
 
 //var d = Math.sqrt( (canvas.width/2)*(canvas.width/2) + (3*canvas.height/4)*(3*canvas.height/4));
 
@@ -201,7 +201,7 @@ Shape.prototype.changeSize = function(ratio) {
     
 //Array for storing shapes
 var shapes = [];
-for(var i=0; i<10; i++){
+for(var i=0; i<numShapes; i++){
     var size = generateSize();
     shapes.push(new Shape(generateX(size),generateY(size),size,randomColor(),audioCtx,false));
     console.log("shape");
@@ -316,7 +316,7 @@ function getDistance(x1,y1,x2,y2){
         <=player.radarSize+shape.size
         )
         {
-        shape.gainNode.gain.value = .8;
+        shape.gainNode.gain.value = 1;
         }
     else {
         shape.gainNode.gain.value = 0;
@@ -337,13 +337,13 @@ ctx.stroke();
 }
 
 function updateRadarClock(shape) {
- var now= new Date();
+
+    var now= new Date();
     var sec=now.getSeconds();
 
     var radarRatio=(sec%5)/10;
 
     shape.radarSize=shape.size*(1+radarRatio)
-
 }
 
 
@@ -352,7 +352,7 @@ function eatShape(index,shape){
     shapes.splice(index,1);
     //shape.source.stop();
     player.size+=(shape.size/2);
-    
+    shape.gainNode.gain.value = 0;
     shape.source.stop();
         
 }
