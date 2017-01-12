@@ -45,18 +45,30 @@ var audioCtx = new AudioContext();
 
 var initradarsize=100;
 var ratio=16/9; //aspect ratio for canvas size
-var player_size = 40;
-var player_x = 0;
-var player_y = 0;
+var player_size = 30;
 var robot_size = player_size; //fair game
-var robot1_x = (window.innerHeight*ratio)-robot_size;
-var robot1_y = window.innerHeight-robot_size;
-var robot2_x = 0;
-var robot2_y = 0;
-var maxNumShapes=15;
-var minNumShapes=5;
+
+//sum of players and robots should be 4!
+var player_count = 1;
+var robot_count = 3;
+var main_color_container = []; //colors for assigning to players and robots
+main_color_container.push("blue");
+main_color_container.push("red");
+main_color_container.push("yellow");
+main_color_container.push("green");
+var main_position_container = [];
+main_position_container.push({x:0,y:0});
+main_position_container.push({x:(canvas.width)-robot_size,y:canvas.height-robot_size});
+main_position_container.push({x:0,y:canvas.height-robot_size});
+main_position_container.push({x:canvas.width-robot_size,y:0});
+
+var maxNumShapes=30;
+var minNumShapes=20;
 var numShapes = getRandomIntInclusive(minNumShapes,maxNumShapes);
 
+var player = undefined;
+var robots = [];
+var shapes = [];
 
 //arrow keys
 var rightPressed = false;
@@ -64,13 +76,13 @@ var leftPressed = false;
 var upPressed = false;
 var downPressed = false;
 
-//Shape size
-var maxsize = 80;
-var minsize = 20;
+//Shape sizes
+var maxsize = 25;
+var minsize = 15;
 var maxfreq=300;
 var minfreq=2000;
-var maxspeed = 2;
-var minspeed = -2;
+var maxspeed = 0;
+var minspeed = 0;
 var spinSpeed = 250;
 
 //Shape object
@@ -134,7 +146,7 @@ var Shape = function(x,y,size,color,type,speedx,speedy,isPlayer){
       this.listener.forwardZ.value = -1;
       this.listener.upX.value = 0;
       this.listener.upY.value = 1;
-      this.listener.upZ.value = 0;
+      // this.listener.upZ.value = 0;
   } else {
       this.listener.setOrientation(0,0,-1,0,1,0);
   }
@@ -251,7 +263,7 @@ Shape.prototype.findNextMove = function(){
 
     if(robot.targetAcquired){
         var maxDist= Math.sqrt(Math.pow(canvas.width,2)+Math.pow(canvas.height,2));   
-        var speedFactor=15*((maxDist-closestDist)/maxDist+1); // higher speedFactor means slower acceleration
+        var speedFactor=10*((maxDist-closestDist)/maxDist+1); // higher speedFactor means slower acceleration
         robot.x=(closestX-robot.x)/speedFactor+robot.x;
         robot.y=(closestY-robot.y)/speedFactor+robot.y;
     }
@@ -438,26 +450,25 @@ Shape.prototype.StopAnimation = function() {
     this.shapesEaten+=1;
 };
 
+function init() {
+    for(var i=0; i<numShapes; i++){
+        var size = generateSize();
+        shapes.push(new Shape(generateX(size),generateY(size),size,randomColor(),"square",getRandomIntInclusive(minspeed,maxspeed),getRandomIntInclusive(minspeed,maxspeed),false));
+    }
 
-//Array for storing shapes
-var shapes = [];
-for(var i=0; i<numShapes; i++){
-    var size = generateSize();
-    shapes.push(new Shape(generateX(size),generateY(size),size,randomColor(),"square",getRandomIntInclusive(minspeed,maxspeed),getRandomIntInclusive(minspeed,maxspeed),false));
-    console.log("shape");
-    console.log(shapes[i].color);
+    for(var i=0; i<robot_count; i++){
+        var position = main_position_container.pop();
+        var robot = new Shape(position.x,position.y,robot_size,main_color_container.pop(),"robot");
+        if(robot.x==0){robot.speedx=3;}
+        else{robot.speedx=-3;}
+        if(robot.y==0){robot.speedy=3;}
+        else{robot.speedy=-3;}
+        robots.push(robot);
+    }
+
+        var position = main_position_container.pop();
+        player = new Shape(position.x,position.y,player_size,main_color_container.pop(),"player");
 }
-
-var allShapesEaten = (shapes.length==0);
-
-
-//Player shape
-var player = new Shape(player_x,player_y,player_size,"blue","player");
-//AI shape
-var robots = [];
-robots.push(new Shape(robot1_x,robot1_y,robot_size,"red","player",-2,-2));
-robots.push(new Shape(robot2_x,robot2_y,robot_size,"blue","player",2,2));
-
 
 document.addEventListener("keydown", keyDownHandler, false);
 document.addEventListener("keyup", keyUpHandler, false);
@@ -507,10 +518,14 @@ function resize_canvas(){
                 shape.y*=changeInHeightRatio;
                 shape.changeSize(changeInHeightRatio);
             });
-            player.changeSize(changeInHeightRatio);
+                player.x*=changeInWidthRatio;
+                player.y*=changeInHeightRatio;
+                player.changeSize(changeInHeightRatio);
             robots.forEach(function(robot){
+                robot.x*=changeInWidthRatio;
+                robot.y*=changeInHeightRatio;
                 robot.changeSize(changeInHeightRatio);
-            });             
+            });            
         } else {
             canvas.width=window.innerWidth;
             canvas.height=canvas.width/ratio;
@@ -520,13 +535,15 @@ function resize_canvas(){
                 shape.x*=changeInWidthRatio;
                 shape.y*=changeInHeightRatio;
                 shape.changeSize(changeInWidthRatio);
-                shape.size*=changeInWidthRatio;
             });
-
-            player.changeSize(changeInWidthRatio);
+                player.x*=changeInWidthRatio;
+                player.y*=changeInHeightRatio;
+                player.changeSize(changeInWidthRatio);
             robots.forEach(function(robot){
+                robot.x*=changeInWidthRatio;
+                robot.y*=changeInHeightRatio;
                 robot.changeSize(changeInWidthRatio);
-            }); 
+            });
         }
         
     }
@@ -582,14 +599,8 @@ function generateSize(){
     //return dist
 //}
 
-function distance(x1,y1,x2,y2) {
-    return Math.sqrt(Math.pow(x1-x2,2)+Math.pow(y1-y2,2));
-}
 
 function update() {
-
-    resize_canvas(); 
-    
     if (player.size==0) {
         endGame(false);
         return;
@@ -598,25 +609,23 @@ function update() {
         endGame(true);
         return;
     }
-    
-    
+       
     var currentTime = (new Date()).getTime();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     shapes.forEach(function(shape){
         shape.autoMove();
     });
     
+    resize_canvas(); 
 
-
+        player.checkCollisions(currentTime);
+        player.DoAnimation(currentTime);
+    
     robots.forEach(function(robot){
         robot.checkCollisions(currentTime);
         robot.DoAnimation(currentTime);
     });
-    
-    
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    
+         
 //make dark
 //    
 //    ctx.fillStyle="#000000"
@@ -626,7 +635,6 @@ function update() {
 //    ctx.closePath();
 //    ctx.clip();
 //    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
 
 
 for(var i=0; i<shapes.length; i++){
@@ -639,21 +647,19 @@ for(var i=0; i<shapes.length; i++){
 
 shapes.forEach(function(shape){
     shape.draw(ctx);
-
 });
 
 robots.forEach(function(robot){
     robot.findNextMove();
     robot.draw(ctx);
 });
-player.draw(ctx);
-player.checkCollisions(currentTime);
-player.DoAnimation(currentTime);
 
-player.updateAudio(player);
-player.drawRadar(ctx);
+    player.draw(ctx);
+    player.updateAudio(player);
+    player.drawRadar(ctx);
 
-var dist = distance(mousex,player.x,mousey,player.y);
+
+var dist = getDistance(mousex,player.x,mousey,player.y);
 
 var maxDist= Math.sqrt(Math.pow(canvas.width,2)+Math.pow(canvas.height,2));
 
@@ -714,6 +720,7 @@ function getRandomIntInclusive(min, max) {
 }
 
 var startTime = (new Date()).getTime();
+init();
 window.requestAnimationFrame(update);   
 
 </script>
