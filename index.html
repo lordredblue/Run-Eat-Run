@@ -19,9 +19,13 @@
             margin:auto;
         }
         #hud  { position: absolute; top:; background-color: yellow; opacity: 0.8; border: 4px solid black; }
-
-
     </style>
+
+<audio controls autoplay>
+  <source src="runeatrundraft1.mp3"> 
+  Your browser does not support the audio element.
+</audio>
+
 </head>
 <body>
 
@@ -92,6 +96,15 @@ var minfreq=2000;
 var maxspeed = 0;
 var minspeed = 0;
 var spinSpeed = 250;
+//var backgroundMusic=createAudio("runeatrundraft1.mp3");
+
+function createAudio(src, options) {
+  var audio = document.createElement('audio');
+  audio.volume = options.volume || 0.5;
+  audio.loop   = options.loop;
+  audio.src    = src;
+  return audio;
+}
 
 function updateScore(integer){
     document.getElementById("score").innerHTML = integer;
