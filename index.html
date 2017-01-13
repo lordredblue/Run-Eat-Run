@@ -129,6 +129,15 @@ var Shape = function(x,y,size,color,type,speedx,speedy,isPlayer){
     this.shapesEaten = 0;
     
      this.points = []; 
+    
+    var minSides=2;
+    var maxSides=6;        
+        
+        this.sides= getRandomIntInclusive(minSides,maxSides);
+        if (this.sides==2) {
+            this.sides=0;
+        }
+
 
     this.radarSize=1;
     this.gainNode = audioCtx.createGain();
@@ -188,26 +197,41 @@ var Shape = function(x,y,size,color,type,speedx,speedy,isPlayer){
 
 }
 };
-        
+
+function drawCircle(ctx,x,y,r) {
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, 2*Math.PI)
+    ctx.fillStyle=this.color;
+    ctx.fill();
+    ctx.closePath();
+}
         
         
 Shape.prototype.regShape= function(ctx) {
-    if (this.sides==3) {
-         var offset=Math.PI/6
-    } else if (this.sides==4) {
-         var offset=Math.PI/4
-    } else if (this.sides==5) {
-         var offset=3*Math.PI/2
-    } else if (this.sides==6) {
-         var offset=Math.PI
+    var i=0;
+    while (i<this.points.length) {
+        this.points.splice(i,1);
+        i++
     }
-   
-    //    x = cx + r * cos(a)
-    //    y = cy + r * sin(a)
+    
+    if (this.sides==0) {
+        drawCircle(ctx,this.x,this.y,this.size);
+    } else {
+        if (this.sides==3) {
+            var offset=Math.PI/6
+        } else if (this.sides==4) {
+             var offset=Math.PI/4
+        } else if (this.sides==5) {
+             var offset=3*Math.PI/2
+        } else if (this.sides==6) {
+             var offset=Math.PI
+        }
+
+        //    x = cx + r * cos(a)
+        //    y = cy + r * sin(a)
     
     var circumfrence=2*Math.PI*this.size
-    if (this.sides==0) {
-    } else {
+         
         var deltaAngle = 2*Math.PI/this.sides;
 
         var currentAngle=offset;
@@ -235,6 +259,7 @@ Shape.prototype.regShape= function(ctx) {
         }
         ctx.fillStyle = this.color;
         ctx.fill();
+        ctx.closePath();
     }
 };  
 
