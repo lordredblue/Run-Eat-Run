@@ -202,8 +202,8 @@ var Shape = function(x,y,size,color,type,speedx,speedy,isPlayer){
   } else {
       this.listener.setOrientation(0,0,-1,0,1,0);
   }
-  this.listener.positionX.value = this.getCenter().x;
-  this.listener.positionY.value = this.getCenter().y;
+  this.listener.positionX.value = this.x;
+  this.listener.positionY.value = this.y;
   this.listener.positionZ.value = 50;
 
 }
@@ -282,37 +282,38 @@ Shape.prototype.regShape= function(ctx) {
 
 
 
-//Method for shape to draw itself
-Shape.prototype.draw = function(ctx) {
-    //ctx.beginPath();
-    ctx.fillStyle = this.color;
-    ctx.strokeStyle = "white";;
-    ctx.lineWidth = 3;
-    if(this.type == "square"){
-        ctx.fillRect (this.x, this.y, this.size, this.size);
-    }
-    if(this.type == "circle"){
-        ctx.beginPath();
-        ctx.arc(this.getCenter().x,this.getCenter().y,this.size/2, 0, 2 * Math.PI, false);
-        ctx.fill();
-    }
-    if(this.type == "player" || this.type == "robot"){
-        ctx.beginPath();
-        ctx.rect(this.x, this.y, this.size, this.size);
-        ctx.fill();
-        ctx.stroke();
-        ctx.closePath();
-        ctx.beginPath();
-        ctx.fillStyle = "white";
-        ctx.font = "bold "+this.size/2+"px arial";
-        var width = ctx.measureText(this.shapesEaten).width;
-        var height = ctx.measureText(this.shapesEaten).height;
-        ctx.fillText(this.shapesEaten, this.getCenter().x-(width/2), this.getCenter().y+(this.size/5));
-    }
-    //ctx.closePath();
-    //console.log("Square number " + this.id + " has been created at: "+this.x+","+ this.y);
-};
-
+////Method for shape to draw itself
+//Shape.prototype.draw = function(ctx) {
+//    //ctx.beginPath();
+//    ctx.fillStyle = this.color;
+//    ctx.strokeStyle = "white";;
+//    ctx.lineWidth = 3;
+//    if(this.type == "square"){
+//        ctx.fillRect (this.x, this.y, this.size, this.size);
+//    }
+//    if(this.type == "circle"){
+//        ctx.beginPath();
+//        ctx.arc(this.getCenter().x,this.getCenter().y,this.size/2, 0, 2 * Math.PI, false);
+//        ctx.fill();
+//    }
+//    if(this.type == "player" || this.type == "robot"){
+//        ctx.beginPath();
+//        ctx.rect(this.x, this.y, this.size, this.size);
+//        ctx.fill();
+//        ctx.stroke();
+//        ctx.closePath();
+//        ctx.beginPath();
+//        ctx.fillStyle = "white";
+//        ctx.font = "bold "+this.size/2+"px arial";
+//        var width = ctx.measureText(this.shapesEaten).width;
+//        var height = ctx.measureText(this.shapesEaten).height;
+//        ctx.fillText(this.shapesEaten, this.getCenter().x-(width/2), this.getCenter().y+(this.size/5));
+//    }
+//    //ctx.closePath();
+//    //console.log("Square number " + this.id + " has been created at: "+this.x+","+ this.y);
+//};
+        
+//not updated according to center
 Shape.prototype.drawSpin = function(ctx) {
     //ctx.save();
     var time = new Date();
@@ -449,14 +450,24 @@ Shape.prototype.run = function(shape){
 
 Shape.prototype.checkCollision = function(currentTime,shape2){
         var shape1 = this;
-        var half=(shape2.size)/2;
-        if((getDistance(shape1.x,shape1.y,shape2.getCenter().x,shape2.getCenter().y)<=half
-            || getDistance(shape1.x+shape1.size,shape1.y,shape2.getCenter().x,shape2.getCenter().y)<=half
-            || getDistance(shape1.x,shape1.y+shape1.size,shape2.getCenter().x,shape2.getCenter().y)<=half
-            || getDistance(shape1.x+shape1.size,shape1.y+shape1.size,shape2.getCenter().x,shape2.getCenter().y)<=half
-            || getDistance(shape1.getCenter().x,shape1.getCenter().y,shape2.getCenter().x,shape2.getCenter().y)
-            <=(shape1.size+shape2.size)/2) && shape2.inCollision==undefined)
-        {
+        if (shape1.size>shape2.size) {
+            var grower=shape1;
+            var shrinker=shape2;
+        } else {
+            var grower=shape2;
+            var shrinker=shape1;
+        }
+        //var half=(shape2.size)/2;
+    
+    if (getDistance(shape1.x,shape1.y,shape2.x,shape2.y)<=shrinker.size && shape2.inCollision==undefined){
+//            
+//        if((getDistance(shape1.x,shape1.y,shape2.x,shape2.y)<=half
+//            || getDistance(shape1.x+shape1.size,shape1.y,shape2.getCenter().x,shape2.getCenter().y)<=half
+//            || getDistance(shape1.x,shape1.y+shape1.size,shape2.getCenter().x,shape2.getCenter().y)<=half
+//            || getDistance(shape1.x+shape1.size,shape1.y+shape1.size,shape2.getCenter().x,shape2.getCenter().y)<=half
+//            || getDistance(shape1.getCenter().x,shape1.getCenter().y,shape2.getCenter().x,shape2.getCenter().y)
+//            <=(shape1.size+shape2.size)/2) && shape2.inCollision==undefined)
+//        {
             if (shape1.size>shape2.size){
                 shape1.StartAnimation(currentTime, 500, shape1.size + shape2.size/3,1);
                 shape1.shapesEaten+=1;
