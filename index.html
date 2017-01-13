@@ -198,10 +198,10 @@ var Shape = function(x,y,size,color,type,speedx,speedy,isPlayer){
 }
 };
 
-function drawCircle(ctx,x,y,r) {
+function drawCircle(ctx,x,y,r,color) {
     ctx.beginPath();
     ctx.arc(x, y, r, 0, 2*Math.PI)
-    ctx.fillStyle=this.color;
+    ctx.fillStyle=color;
     ctx.fill();
     ctx.closePath();
 }
@@ -215,7 +215,7 @@ Shape.prototype.regShape= function(ctx) {
     }
     
     if (this.sides==0) {
-        drawCircle(ctx,this.x,this.y,this.size);
+        drawCircle(ctx,this.x,this.y,this.size,this.color);
     } else {
         if (this.sides==3) {
             var offset=Math.PI/6
@@ -248,13 +248,16 @@ Shape.prototype.regShape= function(ctx) {
 
 
         var i=0;
+         ctx.moveTo(this.x,this.y);
         ctx.beginPath();
-        ctx.moveTo(this.x,this.y);
+       
 
 //        console.log("start pt");
 //        console.log(this.x,this.y);
 //        console.log(this.sides);
+        console.log(this.sides);
         while(i<this.points.length){
+            console.log(i,this.points[i]);
             ctx.lineTo(this.points[i].x,this.points[i].y);
             i++;
         }
