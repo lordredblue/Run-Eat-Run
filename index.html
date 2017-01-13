@@ -499,10 +499,10 @@ Shape.prototype.drawRadar= function(ctx){
     var now= new Date();
     var sec=now.getSeconds();
 
-   var radarRatio=(sec%5)/10;
+    var radarRatio=(sec%5)/10;
 
 
-    this.radarSize=this.size*2*(1+radarRatio);
+    this.radarSize=this.size*3*(1+radarRatio);
     ctx.beginPath()
     ctx.arc(this.x,this.y,this.radarSize,0,Math.PI*2,true);
     ctx.strokeStyle=this.color;
