@@ -379,6 +379,7 @@ Shape.prototype.findNextMove = function(){
             }
         }
     });
+    
     //checking robot locations
     robots.forEach(function(robot2){
         if(robot!=robot2){
@@ -414,7 +415,7 @@ Shape.prototype.findNextMove = function(){
 
 
     if(robot.targetAcquired){
-        console.log("chasing");
+        //console.log("chasing");
         var maxDist= Math.sqrt(Math.pow(canvas.width,2)+Math.pow(canvas.height,2));   
         var speedFactor=10*((maxDist-closestDist)/maxDist+1); // higher speedFactor means slower acceleration
         robot.x=(closestX-robot.x)/speedFactor+robot.x;
@@ -429,9 +430,9 @@ Shape.prototype.findNextMove = function(){
     //     robot.y=(closestY-robot.y)/speedFactor-robot.y;
     // }
     else{   
-        console.log("target not acquired");
+        //console.log("target not acquired");
         if(robot.justAte){
-            console.log("justate")
+            //console.log("justate")
             robot.speedx*=-1;
             robot.speedy*=-1;
             robot.justAte=false;
@@ -763,13 +764,23 @@ function update() {
             robots.splice(i,1);
         }
     }
+    
+    for(var i=0; i<shapes.length; i++){
+        var shape = shapes[i];
+        shape.checkCollisions(currentTime);
+        shape.DoAnimation(currentTime);
+        if(shape.size==0){
+            shapes.splice(i,1);
+        }
+    }
+         
          
 //make dark
-//    
+    
 //    ctx.fillStyle="#000000"
 //    ctx.fillRect(0, 0, canvas.width, canvas.height);
 //    ctx.beginPath();
-//    ctx.arc(player.getCenter().x, player.getCenter().y, player.radarSize, 0, Math.PI*2);
+//    ctx.arc(player.x, player.y, player.radarSize, 0, Math.PI*2);
 //    ctx.closePath();
 //    ctx.clip();
 //    ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -803,6 +814,7 @@ robots.forEach(function(robot){
     player.drain();
     //player.draw(ctx);
     player.regShape(ctx);
+    //console.log(player.size)
     player.updateAudio(player);
     player.checkRadar();
     player.drawRadar(ctx);
