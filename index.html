@@ -47,6 +47,7 @@ var initradarsize=100;
 var ratio=16/9; //aspect ratio for canvas size
 var player_size = 30;
 var robot_size = player_size; //fair game
+var robot_speed = 2.5;//main speed magnitude
 
 //sum of players and robots should be 4!
 var player_count = 1;
@@ -62,8 +63,8 @@ main_position_container.push({x:(canvas.width)-robot_size,y:canvas.height-robot_
 main_position_container.push({x:0,y:canvas.height-robot_size});
 main_position_container.push({x:canvas.width-robot_size,y:0});
 
-var maxNumShapes=30;
-var minNumShapes=20;
+var maxNumShapes=20;
+var minNumShapes=10;
 var numShapes = getRandomIntInclusive(minNumShapes,maxNumShapes);
 
 var player = undefined;
@@ -179,7 +180,7 @@ Shape.prototype.draw = function(ctx) {
         ctx.fill();
         ctx.stroke();
         ctx.closePath();
-        ctx.beginPath();
+        // ctx.beginPath();
         // ctx.fillStyle = "white";
         // ctx.font = "bold "+this.size/2+"px arial";
         // var width = ctx.measureText(this.shapesEaten).width;
@@ -244,31 +245,76 @@ Shape.prototype.findNextMove = function(){
     var closestDist = -1;
     var robot = this;
     robot.targetAcquired = false;
+    robot.dangerAcquired = false;
+    var rangeMultiplier = 2.5;
+    //var danger = undefined;
 
+    //finding target to chase or run away from
+    //checking shape locations
     shapes.forEach(function(shape){
         var dist = getDistance(shape.getCenter().x,shape.getCenter().y,robot.getCenter().x,robot.getCenter().y);
-        if(dist<=robot.size*2.5 && (dist<closestDist || closestDist==-1)){
+        if(dist<=robot.size*rangeMultiplier && (dist<closestDist || closestDist==-1)){
             closestDist = dist;
             closestX = shape.x;
             closestY = shape.y;
             if(robot.size>shape.size){
                 robot.targetAcquired = true;
             }
-            // if(shape.size>robot.size){
-            // robot.targetAcquired = false;
-            // robot.run(shape);
-            // }
         }
     });
+    //checking robot locations
+    robots.forEach(function(robot2){
+        if(robot!=robot2){
+        var dist = getDistance(robot2.getCenter().x,robot2.getCenter().y,robot.getCenter().x,robot.getCenter().y);
+        if(dist<=robot.size*rangeMultiplier && (dist<closestDist || closestDist==-1)){
+            closestDist = dist;
+            closestX = robot2.x;
+            closestY = robot2.y;
+            if(robot.size>robot2.size){
+                robot.targetAcquired = true;
+            }
+            // else if(robot.size<robot2.size){
+            //     danger = robot2;
+            //     robot.dangerAcquired = true;
+            // }
+        }
+        }
+    });
+    //checking player location
+    var dist = getDistance(player.getCenter().x,player.getCenter().y,robot.getCenter().x,robot.getCenter().y);
+        if(dist<=robot.size*rangeMultiplier && (dist<closestDist || closestDist==-1)){
+            closestDist = dist;
+            closestX = player.x;
+            closestY = player.y;
+            if(robot.size>player.size){
+                robot.targetAcquired = true;
+            }
+            // else if(robot.size<player.size){
+            //     danger = player;
+            //     robot.dangerAcquired = true;
+            // }
+      }
+
 
     if(robot.targetAcquired){
+        console.log("chasing");
         var maxDist= Math.sqrt(Math.pow(canvas.width,2)+Math.pow(canvas.height,2));   
         var speedFactor=10*((maxDist-closestDist)/maxDist+1); // higher speedFactor means slower acceleration
         robot.x=(closestX-robot.x)/speedFactor+robot.x;
         robot.y=(closestY-robot.y)/speedFactor+robot.y;
     }
+    // else if(robot.dangerAcquired){
+    //     //var escapeDistance = (danger.size*rangeMultiplier+5)-closestDist;
+    //     console.log("running away");
+    //     var maxDist= Math.sqrt(Math.pow(canvas.width,2)+Math.pow(canvas.height,2));   
+    //     var speedFactor=10*((maxDist-closestDist)/maxDist+1); // higher speedFactor means slower acceleration
+    //     robot.x=(closestX-robot.x)/speedFactor-robot.x;
+    //     robot.y=(closestY-robot.y)/speedFactor-robot.y;
+    // }
     else{   
+        console.log("target not acquired");
         if(robot.justAte){
+            console.log("justate")
             robot.speedx*=-1;
             robot.speedy*=-1;
             robot.justAte=false;
@@ -281,39 +327,22 @@ Shape.prototype.run = function(shape){
     //if(shape.x<this.x && shape.y)
 };
 
-Shape.prototype.checkCollisions = function(currentTime){
-    var shape1 = this;
-    for(var i=0; i<shapes.length; i++){
-        var shape2=shapes[i];
+Shape.prototype.checkCollision = function(currentTime,shape2){
+        var shape1 = this;
         var half=(shape2.size)/2;
         if((getDistance(shape1.x,shape1.y,shape2.getCenter().x,shape2.getCenter().y)<=half
             || getDistance(shape1.x+shape1.size,shape1.y,shape2.getCenter().x,shape2.getCenter().y)<=half
             || getDistance(shape1.x,shape1.y+shape1.size,shape2.getCenter().x,shape2.getCenter().y)<=half
             || getDistance(shape1.x+shape1.size,shape1.y+shape1.size,shape2.getCenter().x,shape2.getCenter().y)<=half
             || getDistance(shape1.getCenter().x,shape1.getCenter().y,shape2.getCenter().x,shape2.getCenter().y)
-            <=(shape1.size+shape2.size)/2) && shape2.inCollision==undefined
-            )
+            <=(shape1.size+shape2.size)/2) && shape2.inCollision==undefined)
         {
-            if(shape2.size!=shape1.size)
-                var bigshape;
-            var smallshape;
             if (shape1.size>shape2.size){
-                bigshape=shape1;
-                smallshape=shape2;
-                bigshape.StartAnimation(currentTime, 500, bigshape.size + smallshape.size/3,1);
-                smallshape.speedx=0;
-                smallshape.speedy=0;
-                smallshape.inCollision = true;
-                smallshape.StartAnimation(currentTime, 500, 0,0);
-            }
-            else if(shape1<shape2.size){
-                bigshape=shape2;
-                smallshape=shape1;
-                bigshape.StartAnimation(currentTime, 500, bigshape.size + smallshape.size/3,1);
-                smallshape.speedx=0;
-                smallshape.speedy=0;
-                smallshape.inCollision = true;
-                smallshape.StartAnimation(currentTime, 500, 0,0);
+                shape1.StartAnimation(currentTime, 500, shape1.size + shape2.size/3,1);
+                shape2.speedx=0;
+                shape2.speedy=0;
+                shape2.inCollision = true;
+                shape2.StartAnimation(currentTime, 500, 0,0);
             }
         }
 
@@ -334,7 +363,21 @@ Shape.prototype.checkCollisions = function(currentTime){
             shape2.gainNode.gain.value = 0;
         }
     }
-}
+};
+
+Shape.prototype.checkCollisions = function(currentTime){
+    var entity = this;
+    shapes.forEach(function(shape){
+        entity.checkCollision(currentTime,shape);
+    });
+    robots.forEach(function(robot){
+        if(entity!=robot){
+        entity.checkCollision(currentTime,robot);
+        }
+    });
+    if(entity!=player){
+    entity.checkCollision(currentTime,player);
+    }
 };
 
 Shape.prototype.drawRadar= function(ctx){
@@ -438,17 +481,22 @@ Shape.prototype.StopAnimation = function() {
     if(this.AnimationStopSize===0)
     {
         this.gainNode.gain.value = 0;
-        this.source.stop();
+        //this.source.stop();
 
     }
     this.AnimationStartTime = undefined;
     this.AnimationStartSize = undefined;
     this.AnimationStopSize = undefined;
     this.AnimationPeriod = undefined;
-    this.targetAcquired=false;
+    //this.targetAcquired=false;
     this.justAte=true;
     this.shapesEaten+=1;
 };
+
+Shape.prototype.drain = function(){
+    var drainFactor = this.size*0.001;
+    this.size-= drainFactor;
+}
 
 function init() {
     for(var i=0; i<numShapes; i++){
@@ -459,16 +507,26 @@ function init() {
     for(var i=0; i<robot_count; i++){
         var position = main_position_container.pop();
         var robot = new Shape(position.x,position.y,robot_size,main_color_container.pop(),"robot");
-        if(robot.x==0){robot.speedx=3;}
-        else{robot.speedx=-3;}
-        if(robot.y==0){robot.speedy=3;}
-        else{robot.speedy=-3;}
+        if(robot.x==0){robot.speedx=robot_speed;}
+        else{robot.speedx=-robot_speed;}
+        if(robot.y==0){robot.speedy=robot_speed;}
+        else{robot.speedy=-robot_speed;}
         robots.push(robot);
     }
 
         var position = main_position_container.pop();
         player = new Shape(position.x,position.y,player_size,main_color_container.pop(),"player");
-}
+};
+
+function regenerateShapes(currentTime){
+    if(shapes.length<minNumShapes){
+        for(var i=0; i<2; i++){
+        var size = generateSize();
+        shapes.push(new Shape(generateX(size),generateY(size),0,randomColor(),"square",getRandomIntInclusive(minspeed,maxspeed),getRandomIntInclusive(minspeed,maxspeed),false));
+        shapes[shapes.length-1].StartAnimation(currentTime,500,size,0);
+    }
+    }
+};
 
 document.addEventListener("keydown", keyDownHandler, false);
 document.addEventListener("keyup", keyUpHandler, false);
@@ -601,14 +659,6 @@ function generateSize(){
 
 
 function update() {
-    if (player.size==0) {
-        endGame(false);
-        return;
-    }
-    if (shapes.length == 0) {
-        endGame(true);
-        return;
-    }
        
     var currentTime = (new Date()).getTime();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -617,14 +667,24 @@ function update() {
     });
     
     resize_canvas(); 
+    regenerateShapes(currentTime);
 
         player.checkCollisions(currentTime);
+
         player.DoAnimation(currentTime);
+        if(player.size==0){
+            endGame(false);
+            return;
+        }
     
-    robots.forEach(function(robot){
+    for(var i=0; i<robots.length; i++){
+        var robot = robots[i];
         robot.checkCollisions(currentTime);
         robot.DoAnimation(currentTime);
-    });
+        if(robot.size==0){
+            robots.splice(i,1);
+        }
+    }
          
 //make dark
 //    
@@ -645,15 +705,22 @@ for(var i=0; i<shapes.length; i++){
     }
 }
 
+if (robots.length == 0) {
+        endGame(true);
+        return;
+    }
+
 shapes.forEach(function(shape){
     shape.draw(ctx);
 });
 
 robots.forEach(function(robot){
     robot.findNextMove();
+    robot.drain();
     robot.draw(ctx);
 });
 
+    player.drain();
     player.draw(ctx);
     player.updateAudio(player);
     player.drawRadar(ctx);
