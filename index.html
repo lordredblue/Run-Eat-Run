@@ -37,7 +37,7 @@
     </table>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/randomcolor/0.4.4/randomColor.js"></script>
+    
     <script>
         "use strict";
         var mousex;
@@ -97,6 +97,15 @@ var maxspeed = 0;
 var minspeed = 0;
 var spinSpeed = 250;
 //var backgroundMusic=createAudio("runeatrundraft1.mp3");
+
+function getRandomColor() {
+    var letters = '0123456789ABCDEF';
+    var color = '#';
+    for (var i = 0; i < 6; i++ ) {
+        color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+}
 
 function createAudio(src, options) {
   var audio = document.createElement('audio');
@@ -610,7 +619,7 @@ Shape.prototype.drain = function(){
 function init() {
     for(var i=0; i<numShapes; i++){
         var size = generateSize();
-        shapes.push(new Shape(generateX(size),generateY(size),size,randomColor(),"square",getRandomIntInclusive(minspeed,maxspeed),getRandomIntInclusive(minspeed,maxspeed),false));
+        shapes.push(new Shape(generateX(size),generateY(size),size,getRandomColor(),"square",getRandomIntInclusive(minspeed,maxspeed),getRandomIntInclusive(minspeed,maxspeed),false));
     }
 
     for(var i=0; i<robot_count; i++){
@@ -631,7 +640,7 @@ function regenerateShapes(currentTime){
     if(shapes.length<minNumShapes){
         for(var i=0; i<2; i++){
         var size = generateSize();
-        shapes.push(new Shape(generateX(size),generateY(size),0,randomColor(),"square",getRandomIntInclusive(minspeed,maxspeed),getRandomIntInclusive(minspeed,maxspeed),false));
+        shapes.push(new Shape(generateX(size),generateY(size),0,getRandomColor(),"square",getRandomIntInclusive(minspeed,maxspeed),getRandomIntInclusive(minspeed,maxspeed),false));
         shapes[shapes.length-1].StartAnimation(currentTime,500,size,0);
     }
     }
