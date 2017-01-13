@@ -109,6 +109,11 @@ function createAudio(src, options) {
 function updateScore(integer){
     document.getElementById("score").innerHTML = integer;
 }
+        
+var Point = function (x,y) {
+    this.x=x;
+    this.y=y;
+};
 
 //Shape object
 var Shape = function(x,y,size,color,type,speedx,speedy,isPlayer){
@@ -122,6 +127,8 @@ var Shape = function(x,y,size,color,type,speedx,speedy,isPlayer){
     this.speedx=speedx;
     this.speedy=speedy;
     this.shapesEaten = 0;
+    
+     this.points = []; 
 
     this.radarSize=1;
     this.gainNode = audioCtx.createGain();
@@ -181,6 +188,55 @@ var Shape = function(x,y,size,color,type,speedx,speedy,isPlayer){
 
 }
 };
+        
+        
+        
+Shape.prototype.regShape= function(ctx) {
+    if (this.sides==3) {
+         var offset=Math.PI/6
+    } else if (this.sides==4) {
+         var offset=Math.PI/4
+    } else if (this.sides==5) {
+         var offset=3*Math.PI/2
+    } else if (this.sides==6) {
+         var offset=Math.PI
+    }
+   
+    //    x = cx + r * cos(a)
+    //    y = cy + r * sin(a)
+    
+    var circumfrence=2*Math.PI*this.size
+    if (this.sides==0) {
+    } else {
+        var deltaAngle = 2*Math.PI/this.sides;
+
+        var currentAngle=offset;
+        do {  
+            var newPointX=(circumfrence*this.x) + (this.size*Math.cos(currentAngle));
+            var newPointY=(circumfrence*this.y) + (this.size*Math.sin(currentAngle));
+
+            currentAngle+=deltaAngle;
+
+            var newPoint=new Point(newPointX,newPointY);
+            this.points.push(newPoint);
+       }
+        while (currentAngle<=2*Math.PI+offset);
+
+
+        var i=0;
+        ctx.beginPath();
+
+//        console.log("start pt");
+//        console.log(this.x,this.y);
+//        console.log(this.sides);
+        while(i<this.points.length){
+            ctx.lineTo(this.points[i].x,this.points[i].y);
+            i++;
+        }
+        ctx.fillStyle = this.color;
+        ctx.fill();
+    }
+};  
 
 
 
@@ -736,6 +792,7 @@ if (robots.length == 0) {
 
 shapes.forEach(function(shape){
     shape.draw(ctx);
+    //shape.regShape(ctx);
 });
 
 robots.forEach(function(robot){
@@ -745,7 +802,8 @@ robots.forEach(function(robot){
 });
 
     player.drain();
-    player.draw(ctx);
+    //player.draw(ctx);
+    player.regShape(ctx);
     player.updateAudio(player);
     player.drawRadar(ctx);
 
