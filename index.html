@@ -330,7 +330,7 @@ Shape.prototype.updateAudio = function(player) {
     //update audiolocation
     if(this.isPlayer==false){
 
-     this.panner.setPosition(this.getCenter().x,this.getCenter().y,50);
+     this.panner.setPosition(this.x,this.y,50);
 
 
      if(this.size<player.size)
@@ -346,15 +346,11 @@ Shape.prototype.updateAudio = function(player) {
 
 } else if(this.isPlayer){
 
- this.listener.setPosition(this.getCenter().x,this.getCenter().y,50);
+ this.listener.setPosition(this.x,this.y,50);
 
 }
 };
 
-
-Shape.prototype.getCenter = function(){
-    return {x: this.x+(this.size/2), y: this.y+(this.size/2)};
-};
 
 Shape.prototype.changeSize = function(ratio) {
     this.size*=ratio;
@@ -373,7 +369,7 @@ Shape.prototype.findNextMove = function(){
     //finding target to chase or run away from
     //checking shape locations
     shapes.forEach(function(shape){
-        var dist = getDistance(shape.getCenter().x,shape.getCenter().y,robot.getCenter().x,robot.getCenter().y);
+        var dist = getDistance(shape.x,shape.y,robot.x,robot.y);
         if(dist<=robot.size*rangeMultiplier && (dist<closestDist || closestDist==-1)){
             closestDist = dist;
             closestX = shape.x;
@@ -386,7 +382,7 @@ Shape.prototype.findNextMove = function(){
     //checking robot locations
     robots.forEach(function(robot2){
         if(robot!=robot2){
-        var dist = getDistance(robot2.getCenter().x,robot2.getCenter().y,robot.getCenter().x,robot.getCenter().y);
+        var dist = getDistance(robot2.x,robot2.y,robot.x,robot.y);
         if(dist<=robot.size*rangeMultiplier && (dist<closestDist || closestDist==-1)){
             closestDist = dist;
             closestX = robot2.x;
@@ -402,7 +398,7 @@ Shape.prototype.findNextMove = function(){
         }
     });
     //checking player location
-    var dist = getDistance(player.getCenter().x,player.getCenter().y,robot.getCenter().x,robot.getCenter().y);
+    var dist = getDistance(player.x,player.y,robot.x,robot.y);
         if(dist<=robot.size*rangeMultiplier && (dist<closestDist || closestDist==-1)){
             closestDist = dist;
             closestX = player.x;
@@ -450,24 +446,7 @@ Shape.prototype.run = function(shape){
 
 Shape.prototype.checkCollision = function(currentTime,shape2){
         var shape1 = this;
-        if (shape1.size>shape2.size) {
-            var grower=shape1;
-            var shrinker=shape2;
-        } else {
-            var grower=shape2;
-            var shrinker=shape1;
-        }
-        //var half=(shape2.size)/2;
-    
-    if (getDistance(shape1.x,shape1.y,shape2.x,shape2.y)<=shrinker.size && shape2.inCollision==undefined){
-//            
-//        if((getDistance(shape1.x,shape1.y,shape2.x,shape2.y)<=half
-//            || getDistance(shape1.x+shape1.size,shape1.y,shape2.getCenter().x,shape2.getCenter().y)<=half
-//            || getDistance(shape1.x,shape1.y+shape1.size,shape2.getCenter().x,shape2.getCenter().y)<=half
-//            || getDistance(shape1.x+shape1.size,shape1.y+shape1.size,shape2.getCenter().x,shape2.getCenter().y)<=half
-//            || getDistance(shape1.getCenter().x,shape1.getCenter().y,shape2.getCenter().x,shape2.getCenter().y)
-//            <=(shape1.size+shape2.size)/2) && shape2.inCollision==undefined)
-//        {
+    if (getDistance(shape1.x,shape1.y,shape2.x,shape2.y)<=(shape1.size+shape2.size)/2 && shape2.inCollision==undefined){
             if (shape1.size>shape2.size){
                 shape1.StartAnimation(currentTime, 500, shape1.size + shape2.size/3,1);
                 shape1.shapesEaten+=1;
@@ -487,13 +466,8 @@ Shape.prototype.checkRadar =function() {
   for(var i=0;i<robots.length;i++) {
     var shape2=robots[i];
 
-    if(getDistance(shape1.x,shape1.y,shape2.getCenter().x,shape2.getCenter().y)<=shape1.radarSize
-        || getDistance(shape1.x+shape1.size,shape1.y,shape2.getCenter().x,shape2.getCenter().y)<=shape1.radarSize
-        || getDistance(shape1.x,shape1.y+shape1.size,shape2.getCenter().x,shape2.getCenter().y)<=shape1.radarSize
-        || getDistance(shape1.x+shape1.size,shape1.y+shape1.size,shape2.getCenter().x,shape2.getCenter().y)<=shape1.radarSize
-        || getDistance(shape1.getCenter().x,shape1.getCenter().y,shape2.getCenter().x,shape2.getCenter().y)
-        <=shape1.radarSize+shape2.size/2
-        )
+    if(getDistance(shape1.x,shape1.y,shape2.x,shape2.y)<=shape1.radarSize
+        || getDistance(shape1.x,shape1.y,shape2.x,shape2.y)<=(shape1.radarSize+shape2.size)/2)
     {
         shape2.updateAudio(shape1);    
         shape2.gainNode.gain.value = 1;
@@ -756,30 +730,6 @@ function generateSize(){
     return Math.random() * (maxsize - minsize) + minsize;
 }
 
-// function drawBall() {
-//     console.log(x,y);
-//     console.log(mousex,mousey);
-//     ctx.beginPath();
-//     ctx.arc(x, y, size, 0, Math.PI*2);
-
-//     ctx.fillStyle = "#0095DD";
-//     ctx.fill();
-
-//     //ctx.strokeRect(x,y,50,50);
-//     ctx.closePath();
-// }
-
-// function drawSquare() {
-//     console.log(x,y);
-//     console.log(mousex,mousey);
-//     ctx.beginPath();
-//     ctx.fillRect (x, y, size, size);
-//     ctx.fillStyle = "#0095DD";
-//     ctx.fill();
-//     ctx.closePath();
-
-// }
-
 //function speed() {
     //var dist = Math.sqrt(pow(mousex-x,2)+pow(mousey-y,2));
     //return dist
@@ -907,7 +857,9 @@ function endGame(win){
         ctx.fillText("you lost.",10,50);
     }
     shapes.forEach(function(shape){
-        shape.source.stop();
+        if (shape.source!=undefined) {
+            shape.source.stop();
+        }
     });
 
 }
