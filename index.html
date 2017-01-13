@@ -364,7 +364,6 @@ Shape.prototype.checkCollision = function(currentTime,shape2){
             if (shape1.size>shape2.size){
                 shape1.StartAnimation(currentTime, 500, shape1.size + shape2.size/3,1);
                 shape1.shapesEaten+=1;
-                updateScore(shape1.shapesEaten);
                 shape2.speedx=0;
                 shape2.speedy=0;
                 shape2.inCollision = true;
@@ -762,7 +761,7 @@ if(mousex>0 && mousex<canvas.width &&mousey>0 &&mousey<canvas.height){
     player.x=(mousex-player.x)/speedFactor+player.x;
     player.y=(mousey-player.y)/speedFactor+player.y;
 }
-
+updateScore(player.shapesEaten);
 var speed = dist/50;
 
     //arrowkeys
