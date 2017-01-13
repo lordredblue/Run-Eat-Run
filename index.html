@@ -21,10 +21,15 @@
         #hud  { position: absolute; top:; background-color: yellow; opacity: 0.8; border: 4px solid black; }
     </style>
 
-<audio controls autoplay>
-  <source src="runeatrundraft1.mp3"> 
-  Your browser does not support the audio element.
-</audio>
+<audio loop="loop" id= "audio1" controls autoplay onloadeddata="setHalfVolume()">
+      <source src="runeatrundraft1.mp3"> 
+          Your browser does not support the audio element.
+      </audio>
+
+         
+      <audio id= "fleesound">
+      <source src="fleesound.wav">
+       </audio>
 
 </head>
 <body>
@@ -40,6 +45,11 @@
     
     <script>
         "use strict";
+
+                function setHalfVolume() {
+              var myAudio = document.getElementById("audio1");  
+    myAudio.volume = 0.1; //Changed this to 0.5 or 50% volume since the function is called Set Half Volume ;)
+}
         var mousex;
         var mousey;
         var canvas = document.getElementById("myCanvas");
@@ -96,7 +106,8 @@ var minfreq=2000;
 var maxspeed = 0;
 var minspeed = 0;
 var spinSpeed = 250;
-//var backgroundMusic=createAudio("runeatrundraft1.mp3");
+var fleeaudio = document.getElementById('fleesound');
+var fleesound= audioCtx.createMediaElementSource(fleeaudio);
 
 function getRandomColor() {
     var letters = '0123456789ABCDEF';
@@ -107,13 +118,6 @@ function getRandomColor() {
     return color;
 }
 
-function createAudio(src, options) {
-  var audio = document.createElement('audio');
-  audio.volume = options.volume || 0.5;
-  audio.loop   = options.loop;
-  audio.src    = src;
-  return audio;
-}
 
 function updateScore(integer){
     document.getElementById("score").innerHTML = integer;
@@ -154,16 +158,14 @@ var Shape = function(x,y,size,color,type,speedx,speedy,isPlayer){
     this.gainNode.gain.value = 1;
 
     if(this.isPlayer==false){
-        this.source= audioCtx.createOscillator();
-        this.source.type = 'sine';
-        this.source.frequency.value = (maxfreq-minfreq)*(this.size-minsize)/(maxsize-minsize)+minfreq ; // value in hertz
+ 
 
         this.panner = audioCtx.createPanner();
-        this.source.connect(this.panner);
+   
         this.panner.connect(this.gainNode);
 
         this.gainNode.gain.value = 0;
-        this.source.start();
+     
 
         this.panner.panningModel = 'HRTF';
         this.panner.distanceModel = 'inverse';
@@ -323,33 +325,31 @@ Shape.prototype.drawSpin = function(ctx) {
 
 Shape.prototype.updateAudio = function(player) {
 
+       
     //update audiolocation
     if(this.isPlayer==false){
 
-       this.panner.setPosition(this.getCenter().x,this.getCenter().y,50);
+     this.panner.setPosition(this.getCenter().x,this.getCenter().y,50);
 
-       var midfrequency=(maxfreq-minfreq)/2;
-       this.source.frequency.value=midfrequency;
 
-       var lowerfrequency=midfrequency/3;
-       var higherfrequency=midfrequency+lowerfrequency;
-
-       if(this.size<player.size)
-       {
-        this.source.frequency.value=higherfrequency;
+     if(this.size<player.size)
+     {
+        this.source=fleesound;
+        this.source.connect(this.panner);
     }
 
     if(this.size>player.size)
     {
-        this.source.frequency.value=lowerfrequency;
+        //this.source=chasesound;
     }
 
 } else if(this.isPlayer){
 
-   this.listener.setPosition(this.getCenter().x,this.getCenter().y,50);
+ this.listener.setPosition(this.getCenter().x,this.getCenter().y,50);
 
 }
 };
+
 
 Shape.prototype.getCenter = function(){
     return {x: this.x+(this.size/2), y: this.y+(this.size/2)};
@@ -467,23 +467,30 @@ Shape.prototype.checkCollision = function(currentTime,shape2){
             }
         }
 
-        if(shape1.isPlayer==true){
-        //audio on/off for radar
-        if(getDistance(shape1.x,shape1.y,shape2.getCenter().x,shape2.getCenter().y)<=shape1.radarSize
-            || getDistance(shape1.x+shape1.size,shape1.y,shape2.getCenter().x,shape2.getCenter().y)<=shape1.radarSize
-            || getDistance(shape1.x,shape1.y+shape1.size,shape2.getCenter().x,shape2.getCenter().y)<=shape1.radarSize
-            || getDistance(shape1.x+shape1.size,shape1.y+shape1.size,shape2.getCenter().x,shape2.getCenter().y)<=shape1.radarSize
-            || getDistance(shape1.getCenter().x,shape1.getCenter().y,shape2.getCenter().x,shape2.getCenter().y)
-            <=shape1.radarSize+shape2.size/2
-            )
-        {
-            shape2.updateAudio(shape1);    
-            shape2.gainNode.gain.value = 1;
-        }
-        else {
-            shape2.gainNode.gain.value = 0;
-        }
+};
+
+
+Shape.prototype.checkRadar =function() {
+  //audio on/off for radar
+  var shape1=this;
+  for(var i=0;i<robots.length;i++) {
+    var shape2=robots[i];
+
+    if(getDistance(shape1.x,shape1.y,shape2.getCenter().x,shape2.getCenter().y)<=shape1.radarSize
+        || getDistance(shape1.x+shape1.size,shape1.y,shape2.getCenter().x,shape2.getCenter().y)<=shape1.radarSize
+        || getDistance(shape1.x,shape1.y+shape1.size,shape2.getCenter().x,shape2.getCenter().y)<=shape1.radarSize
+        || getDistance(shape1.x+shape1.size,shape1.y+shape1.size,shape2.getCenter().x,shape2.getCenter().y)<=shape1.radarSize
+        || getDistance(shape1.getCenter().x,shape1.getCenter().y,shape2.getCenter().x,shape2.getCenter().y)
+        <=shape1.radarSize+shape2.size/2
+        )
+    {
+        shape2.updateAudio(shape1);    
+        shape2.gainNode.gain.value = 1;
     }
+    else {
+        shape2.gainNode.gain.value = 0;
+    }
+}
 };
 
 Shape.prototype.checkCollisions = function(currentTime){
@@ -506,18 +513,10 @@ Shape.prototype.drawRadar= function(ctx){
     var now= new Date();
     var sec=now.getSeconds();
 
-    var radarRatio=(sec%5)/10;
+   var radarRatio=(sec%5)/10;
 
-    this.radarSize=initradarsize*(1+radarRatio);
 
-    var a=(this.size/2)*(this.size/2);
-    var b=(this.size/2)*(this.size/2);
-    var c= Math.sqrt(a+b);
-
-    if(this.radarSize<c)
-    {
-        this.radarSize=(c)*(1+radarRatio);
-    }
+    this.radarSize=this.size*2*(1+radarRatio);
     ctx.beginPath()
     ctx.arc(this.x,this.y,this.radarSize,0,Math.PI*2,true);
     ctx.strokeStyle=this.color;
@@ -844,6 +843,7 @@ robots.forEach(function(robot){
     //player.draw(ctx);
     player.regShape(ctx);
     player.updateAudio(player);
+    player.checkRadar();
     player.drawRadar(ctx);
 
 
