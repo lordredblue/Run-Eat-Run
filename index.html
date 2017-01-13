@@ -106,8 +106,6 @@ var minfreq=2000;
 var maxspeed = 0;
 var minspeed = 0;
 var spinSpeed = 250;
-var fleeaudio = document.getElementById('fleesound');
-var fleesound= audioCtx.createMediaElementSource(fleeaudio);
 
 function getRandomColor() {
     var letters = '0123456789ABCDEF';
@@ -159,12 +157,16 @@ var Shape = function(x,y,size,color,type,speedx,speedy,isPlayer){
 
     if(this.isPlayer==false){
  
+        this.source= audioCtx.createOscillator();
+        this.source.type = 'sine';
+        this.source.frequency.value =getRandomIntInclusive(maxfreq,minfreq) ; // value in hertz
 
         this.panner = audioCtx.createPanner();
-   
+   this.source.connect(this.panner);
         this.panner.connect(this.gainNode);
 
         this.gainNode.gain.value = 0;
+         this.source.start();
      
 
         this.panner.panningModel = 'HRTF';
@@ -326,31 +328,33 @@ Shape.prototype.drawSpin = function(ctx) {
 
 Shape.prototype.updateAudio = function(player) {
 
-       
     //update audiolocation
     if(this.isPlayer==false){
 
-     this.panner.setPosition(this.x,this.y,50);
+       this.panner.setPosition(this.x,this.y,50);
 
+       var midfrequency=(maxfreq-minfreq)/2;
+       this.source.frequency.value=midfrequency;
 
-     if(this.size<player.size)
-     {
-        this.source=fleesound;
-        this.source.connect(this.panner);
+       var lowerfrequency=196.00;
+       var higherfrequency=1567.98;
+
+       if(this.size<player.size)
+       {
+        this.source.frequency.value=lowerfrequency;
     }
 
     if(this.size>player.size)
     {
-        //this.source=chasesound;
+        this.source.frequency.value=higherfrequency;
     }
 
 } else if(this.isPlayer){
 
- this.listener.setPosition(this.x,this.y,50);
+   this.listener.setPosition(this.getCenter().x,this.getCenter().y,50);
 
 }
 };
-
 
 Shape.prototype.changeSize = function(ratio) {
     this.size*=ratio;
@@ -609,7 +613,7 @@ function init() {
 
     for(var i=0; i<robot_count; i++){
         var position = main_position_container.pop();
-        var robot = new Shape(position.x,position.y,robot_size,main_color_container.pop(),"robot");
+        var robot = new Shape(position.x,position.y,robot_size,main_color_container.pop(),"robot",0,0,false);
         if(robot.x==0){robot.speedx=robot_speed;}
         else{robot.speedx=-robot_speed;}
         if(robot.y==0){robot.speedy=robot_speed;}
@@ -773,8 +777,7 @@ function update() {
             shapes.splice(i,1);
         }
     }
-         
-         
+           
 //make dark
     
     ctx.fillStyle="#000000"
@@ -851,7 +854,6 @@ var speed = dist/50;
 
     window.requestAnimationFrame(update);
 }
-
 
 
 function endGame(win){
