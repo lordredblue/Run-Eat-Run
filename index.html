@@ -208,11 +208,11 @@ function drawCircle(ctx,x,y,r,color) {
         
         
 Shape.prototype.regShape= function(ctx) {
-    var i=0;
-    while (i<this.points.length) {
-        this.points.splice(i,1);
-        i++
-    }
+    this.points=[];
+    
+//    ctx.strokeStyle = "white";
+//    ctx.lineWidth = 3;
+    
     
     if (this.sides==0) {
         drawCircle(ctx,this.x,this.y,this.size,this.color);
@@ -230,14 +230,14 @@ Shape.prototype.regShape= function(ctx) {
         //    x = cx + r * cos(a)
         //    y = cy + r * sin(a)
     
-    var circumfrence=2*Math.PI*this.size
+    //var circumfrence=2*Math.PI*this.size
          
         var deltaAngle = 2*Math.PI/this.sides;
 
         var currentAngle=offset;
         do {  
-            var newPointX=(circumfrence*this.x) + (this.size*Math.cos(currentAngle));
-            var newPointY=(circumfrence*this.y) + (this.size*Math.sin(currentAngle));
+            var newPointX=(this.x) + (this.size*Math.cos(currentAngle));
+            var newPointY=(this.y) + (this.size*Math.sin(currentAngle));
 
             currentAngle+=deltaAngle;
 
@@ -248,22 +248,24 @@ Shape.prototype.regShape= function(ctx) {
 
 
         var i=0;
-         ctx.moveTo(this.x,this.y);
+        //ctx.moveTo(this.x,this.y);
         ctx.beginPath();
        
-
-//        console.log("start pt");
-//        console.log(this.x,this.y);
-//        console.log(this.sides);
-        console.log(this.sides);
         while(i<this.points.length){
-            console.log(i,this.points[i]);
             ctx.lineTo(this.points[i].x,this.points[i].y);
             i++;
         }
         ctx.fillStyle = this.color;
         ctx.fill();
-        ctx.closePath();
+        
+    }
+      if(this.type == "player" || this.type == "robot"){
+        ctx.fillStyle = "white";
+          ctx.stroke();
+//        ctx.font = "bold "+this.size/2+"px arial";
+//        var width = ctx.measureText(this.shapesEaten).width;
+//        var height = ctx.measureText(this.shapesEaten).height;
+//        ctx.fillText(this.shapesEaten, this.getCenter().x-(width/2), this.getCenter().y+(this.size/5));
     }
 };  
 
@@ -820,14 +822,15 @@ if (robots.length == 0) {
     }
 
 shapes.forEach(function(shape){
-    shape.draw(ctx);
-    //shape.regShape(ctx);
+    //shape.draw(ctx);
+    shape.regShape(ctx);
 });
 
 robots.forEach(function(robot){
     robot.findNextMove();
     robot.drain();
-    robot.draw(ctx);
+    //robot.draw(ctx);
+    robot.regShape(ctx);
 });
 
     player.drain();
