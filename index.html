@@ -18,6 +18,8 @@
             right: 0;
             margin:auto;
         }
+        #hud  { position: absolute; top:; background-color: yellow; opacity: 0.8; border: 4px solid black; }
+
 
     </style>
 </head>
@@ -25,6 +27,11 @@
 
     <canvas id="myCanvas" width="1000" height="750" ></canvas>
     
+    <div id="hud">
+    <table>
+        <tr><td>Score:</span></td><td id = 'score'>0</td><td><input type="button" value="Play Again" onClick="window.location.reload()"></input></td></tr>
+    </table>
+    </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/randomcolor/0.4.4/randomColor.js"></script>
     <script>
@@ -85,6 +92,10 @@ var minfreq=2000;
 var maxspeed = 0;
 var minspeed = 0;
 var spinSpeed = 250;
+
+function updateScore(integer){
+    document.getElementById("score").innerHTML = integer;
+}
 
 //Shape object
 var Shape = function(x,y,size,color,type,speedx,speedy,isPlayer){
@@ -180,12 +191,12 @@ Shape.prototype.draw = function(ctx) {
         ctx.fill();
         ctx.stroke();
         ctx.closePath();
-        // ctx.beginPath();
-        // ctx.fillStyle = "white";
-        // ctx.font = "bold "+this.size/2+"px arial";
-        // var width = ctx.measureText(this.shapesEaten).width;
-        // var height = ctx.measureText(this.shapesEaten).height;
-        // ctx.fillText(this.shapesEaten, this.getCenter().x-(width/2), this.getCenter().y+(this.size/5));
+        ctx.beginPath();
+        ctx.fillStyle = "white";
+        ctx.font = "bold "+this.size/2+"px arial";
+        var width = ctx.measureText(this.shapesEaten).width;
+        var height = ctx.measureText(this.shapesEaten).height;
+        ctx.fillText(this.shapesEaten, this.getCenter().x-(width/2), this.getCenter().y+(this.size/5));
     }
     //ctx.closePath();
     //console.log("Square number " + this.id + " has been created at: "+this.x+","+ this.y);
@@ -339,6 +350,8 @@ Shape.prototype.checkCollision = function(currentTime,shape2){
         {
             if (shape1.size>shape2.size){
                 shape1.StartAnimation(currentTime, 500, shape1.size + shape2.size/3,1);
+                shape1.shapesEaten+=1;
+                updateScore(shape1.shapesEaten);
                 shape2.speedx=0;
                 shape2.speedy=0;
                 shape2.inCollision = true;
@@ -490,7 +503,6 @@ Shape.prototype.StopAnimation = function() {
     this.AnimationPeriod = undefined;
     //this.targetAcquired=false;
     this.justAte=true;
-    this.shapesEaten+=1;
 };
 
 Shape.prototype.drain = function(){
