@@ -75,9 +75,9 @@ var isAudioLoaded=false;
    var bufferLoader = new BufferLoader(
         audioCtx,
         [
-        "fleesound.wav",
-        "chasesound.wav",
-        "eatsound.wav",
+        "fleesound.mp3",
+        "chasesound.mp3",
+        "eatsound.mp3",
         ],
         finishedLoading
     );
@@ -98,14 +98,6 @@ var isAudioLoaded=false;
     chase=new AudioPath(chasesound);
     eat=new AudioPath(eatsound);
     isAudioLoaded=true;
-    
-    // kick.connect(audioCtx.destination);
-    // snare.connect(audioCtx.destination);
-    // hihat.connect(audioCtx.destination); 
-    // Play them together
-    // kick.start(0);
-    // snare.start(0);
-    // hihat.start(0);
 }
 
 
@@ -126,29 +118,22 @@ var AudioPath = function(bs){
         this.gainNode.gain.value = 0;
         this.bufferSource.start();
 
-         //this.source.start();
+        this.panner.panningModel = 'HRTF';
+        this.panner.distanceModel = 'inverse';
+        this.panner.refDistance = 5;
+        this.panner.maxDistance = 10000;
+        this.panner.rolloffFactor = 1;
+        this.panner.coneInnerAngle = 360;
+        this.panner.coneOuterAngle = 0;
+        this.panner.coneOuterGain = 0;
 
-
-      //   this.panner.panningModel = 'HRTF';
-      //   this.panner.distanceModel = 'inverse';
-      //   this.panner.refDistance = 5;
-      //   this.panner.maxDistance = 10000;
-      //   this.panner.rolloffFactor = 1;
-      //   this.panner.coneInnerAngle = 360;
-      //   this.panner.coneOuterAngle = 0;
-      //   this.panner.coneOuterGain = 0;
-
-      //   if(this.panner.orientationX) {
-      //     this.panner.orientationX.value = 1;
-      //     this.panner.orientationY.value = 0;
-      //     this.panner.orientationZ.value = 0;
-      // } else {
-      //     this.panner.setOrientation(1,0,0);
-      // }
-
-      // this.panner.positionX.value = this.x;
-      // this.panner.positionY.value = this.y;
-      // this.panner.positionZ.value = 50;
+        if(this.panner.orientationX) {
+          this.panner.orientationX.value = 1;
+          this.panner.orientationY.value = 0;
+          this.panner.orientationZ.value = 0;
+      } else {
+          this.panner.setOrientation(1,0,0);
+      }
   };
 
 
@@ -237,8 +222,8 @@ var Shape = function(x,y,size,color,type,speedx,speedy,isPlayer){
         this.sides=0;
     }
 
-
     this.radarSize=1;
+
  if(this.isPlayer==true){
     this.listener = audioCtx.listener;
 
@@ -255,7 +240,6 @@ var Shape = function(x,y,size,color,type,speedx,speedy,isPlayer){
   this.listener.positionX.value = this.x;
   this.listener.positionY.value = this.y;
   this.listener.positionZ.value = 50;
-
 }
 };
 
@@ -503,24 +487,23 @@ Shape.prototype.checkRadar =function() {
         || getDistance(shape1.x,shape1.y,shape2.x,shape2.y)<=(shape1.radarSize+shape2.size)/2)
     {
 
-     //panner.setPosition(this.x,this.y,50);
-
      if(shape1.size<shape2.size)
      {
         flee.gainNode.gain.value=1;
+        flee.panner.setPosition(shape2.x,shape2.y,50);
         break;
     }
 
     else if(shape1.size>shape2.size)
     {
         chase.gainNode.gain.value=1;
+        chase.panner.setPosition(shape2.x,shape2.y,50);
         break;
     }    
     }
     else {
         flee.gainNode.gain.value=0;
         chase.gainNode.gain.value=0;
-
     }
 }
 };
