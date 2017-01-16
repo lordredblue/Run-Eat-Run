@@ -21,48 +21,136 @@
         #hud  { position: absolute; top:; background-color: yellow; opacity: 0.8; border: 4px solid black; }
     </style>
 
-<audio loop="loop" id= "audio1" controls autoplay onloadeddata="setHalfVolume()">
+    <audio loop="loop" id= "audio1" controls autoplay onloadeddata="setHalfVolume()">
       <source src="runeatrundraft1.mp3"> 
           Your browser does not support the audio element.
       </audio>
 
-         
-      <audio id= "fleesound">
-      <source src="fleesound.wav">
-       </audio>
 
-</head>
-<body>
+
+  </head>
+  <body>
 
     <canvas id="myCanvas" width="1000" height="750" ></canvas>
     
     <div id="hud">
-    <table>
-        <tr><td>Score:</span></td><td id = 'score'>0</td><td><input type="button" value="Play Again" onClick="window.location.reload()"></input></td></tr>
-    </table>
+        <table>
+            <tr><td>Score:</span></td><td id = 'score'>0</td><td><input type="button" value="Play Again" onClick="window.location.reload()"></input></td></tr>
+        </table>
     </div>
+
+    <script type="text/javascript" src="buffer-loader.js"></script>
 
     
     <script>
         "use strict";
 
-                function setHalfVolume() {
-              var myAudio = document.getElementById("audio1");  
+        function setHalfVolume() {
+          var myAudio = document.getElementById("audio1");  
     myAudio.volume = 0.1; //Changed this to 0.5 or 50% volume since the function is called Set Half Volume ;)
 }
-        var mousex;
-        var mousey;
-        var canvas = document.getElementById("myCanvas");
-        canvas.style.background = 'black';
-        canvas.addEventListener('mousemove', function(event){
-            mousex = event.clientX-canvas.getBoundingClientRect().left;
-            mousey = event.clientY-canvas.getBoundingClientRect().top;
-        });
-        var ctx = canvas.getContext("2d");
+var mousex;
+var mousey;
+var canvas = document.getElementById("myCanvas");
+canvas.style.background = 'black';
+canvas.addEventListener('mousemove', function(event){
+    mousex = event.clientX-canvas.getBoundingClientRect().left;
+    mousey = event.clientY-canvas.getBoundingClientRect().top;
+});
+var ctx = canvas.getContext("2d");
 
 //audioctx
 var AudioContext = window.AudioContext || window.webkitAudioContext;
 var audioCtx = new AudioContext();
+
+var fleesound;
+var chasesound;
+var eatsound;
+
+var flee;
+var chase;
+var eat;
+var isAudioLoaded=false;
+
+   var bufferLoader = new BufferLoader(
+        audioCtx,
+        [
+        "fleesound.wav",
+        "chasesound.wav",
+        "eatsound.wav",
+        ],
+        finishedLoading
+    );
+
+    bufferLoader.load();
+
+
+
+    function finishedLoading(bufferList) {
+    // Create three sources and buffers
+    fleesound = audioCtx.createBufferSource();
+    chasesound = audioCtx.createBufferSource();
+    eatsound = audioCtx.createBufferSource();
+    fleesound.buffer = bufferList[0];
+    chasesound.buffer = bufferList[1];
+    eatsound.buffer = bufferList[2];
+    flee= new AudioPath(fleesound);
+    chase=new AudioPath(chasesound);
+    eat=new AudioPath(eatsound);
+    isAudioLoaded=true;
+    
+    // kick.connect(audioCtx.destination);
+    // snare.connect(audioCtx.destination);
+    // hihat.connect(audioCtx.destination); 
+    // Play them together
+    // kick.start(0);
+    // snare.start(0);
+    // hihat.start(0);
+}
+
+
+var AudioPath = function(bs){
+
+    this.bufferSource = audioCtx.createBufferSource();
+    this.bufferSource = bs;
+    this.bufferSource.loop=true;
+
+
+    this.gainNode = audioCtx.createGain();
+    this.gainNode.connect(audioCtx.destination);
+
+        this.panner = audioCtx.createPanner();
+        this.bufferSource.connect(this.panner);
+        this.panner.connect(this.gainNode);
+
+        this.gainNode.gain.value = 0;
+        this.bufferSource.start();
+
+         //this.source.start();
+
+
+      //   this.panner.panningModel = 'HRTF';
+      //   this.panner.distanceModel = 'inverse';
+      //   this.panner.refDistance = 5;
+      //   this.panner.maxDistance = 10000;
+      //   this.panner.rolloffFactor = 1;
+      //   this.panner.coneInnerAngle = 360;
+      //   this.panner.coneOuterAngle = 0;
+      //   this.panner.coneOuterGain = 0;
+
+      //   if(this.panner.orientationX) {
+      //     this.panner.orientationX.value = 1;
+      //     this.panner.orientationY.value = 0;
+      //     this.panner.orientationZ.value = 0;
+      // } else {
+      //     this.panner.setOrientation(1,0,0);
+      // }
+
+      // this.panner.positionX.value = this.x;
+      // this.panner.positionY.value = this.y;
+      // this.panner.positionZ.value = 50;
+  };
+
 
 var initradarsize=100;
 var ratio=16/9; //aspect ratio for canvas size
@@ -120,7 +208,7 @@ function getRandomColor() {
 function updateScore(integer){
     document.getElementById("score").innerHTML = integer;
 }
-        
+
 var Point = function (x,y) {
     this.x=x;
     this.y=y;
@@ -139,59 +227,19 @@ var Shape = function(x,y,size,color,type,speedx,speedy,isPlayer){
     this.speedy=speedy;
     this.shapesEaten = 0;
     
-     this.points = []; 
+    this.points = []; 
     
     var minSides=2;
     var maxSides=6;        
-        
-        this.sides= getRandomIntInclusive(minSides,maxSides);
-        if (this.sides==2) {
-            this.sides=0;
-        }
+
+    this.sides= getRandomIntInclusive(minSides,maxSides);
+    if (this.sides==2) {
+        this.sides=0;
+    }
 
 
     this.radarSize=1;
-    this.gainNode = audioCtx.createGain();
-    this.gainNode.connect(audioCtx.destination);
-    this.gainNode.gain.value = 1;
-
-    if(this.isPlayer==false){
- 
-        this.source= audioCtx.createOscillator();
-        this.source.type = 'sine';
-        this.source.frequency.value =getRandomIntInclusive(maxfreq,minfreq) ; // value in hertz
-
-        this.panner = audioCtx.createPanner();
-   this.source.connect(this.panner);
-        this.panner.connect(this.gainNode);
-
-        this.gainNode.gain.value = 0;
-         this.source.start();
-     
-
-        this.panner.panningModel = 'HRTF';
-        this.panner.distanceModel = 'inverse';
-        this.panner.refDistance = 5;
-        this.panner.maxDistance = 10000;
-        this.panner.rolloffFactor = 1;
-        this.panner.coneInnerAngle = 360;
-        this.panner.coneOuterAngle = 0;
-        this.panner.coneOuterGain = 0;
-
-        if(this.panner.orientationX) {
-          this.panner.orientationX.value = 1;
-          this.panner.orientationY.value = 0;
-          this.panner.orientationZ.value = 0;
-      } else {
-          this.panner.setOrientation(1,0,0);
-      }
-
-      this.panner.positionX.value = this.x;
-      this.panner.positionY.value = this.y;
-      this.panner.positionZ.value = 50;
-
-  }
-  else if(this.isPlayer==true){
+ if(this.isPlayer==true){
     this.listener = audioCtx.listener;
 
     if(this.listener.forwardX) {
@@ -218,52 +266,52 @@ function drawCircle(ctx,x,y,r,color) {
     ctx.fill();
     ctx.closePath();
 }
-        
-        
+
+
 Shape.prototype.regShape= function(ctx) {
     this.points=[];
     
 //    ctx.strokeStyle = "white";
 //    ctx.lineWidth = 3;
-    
-    
-    if (this.sides==0) {
-        drawCircle(ctx,this.x,this.y,this.size,this.color);
-    } else {
-        if (this.sides==3) {
-            var offset=Math.PI/6
-        } else if (this.sides==4) {
-             var offset=Math.PI/4
-        } else if (this.sides==5) {
-             var offset=3*Math.PI/2
-        } else if (this.sides==6) {
-             var offset=Math.PI
-        }
+
+
+if (this.sides==0) {
+    drawCircle(ctx,this.x,this.y,this.size,this.color);
+} else {
+    if (this.sides==3) {
+        var offset=Math.PI/6
+    } else if (this.sides==4) {
+       var offset=Math.PI/4
+   } else if (this.sides==5) {
+       var offset=3*Math.PI/2
+   } else if (this.sides==6) {
+       var offset=Math.PI
+   }
 
         //    x = cx + r * cos(a)
         //    y = cy + r * sin(a)
-    
+
     //var circumfrence=2*Math.PI*this.size
-         
-        var deltaAngle = 2*Math.PI/this.sides;
 
-        var currentAngle=offset;
-        do {  
-            var newPointX=(this.x) + (this.size*Math.cos(currentAngle));
-            var newPointY=(this.y) + (this.size*Math.sin(currentAngle));
+    var deltaAngle = 2*Math.PI/this.sides;
 
-            currentAngle+=deltaAngle;
+    var currentAngle=offset;
+    do {  
+        var newPointX=(this.x) + (this.size*Math.cos(currentAngle));
+        var newPointY=(this.y) + (this.size*Math.sin(currentAngle));
 
-            var newPoint=new Point(newPointX,newPointY);
-            this.points.push(newPoint);
-       }
-        while (currentAngle<=2*Math.PI+offset);
+        currentAngle+=deltaAngle;
+
+        var newPoint=new Point(newPointX,newPointY);
+        this.points.push(newPoint);
+    }
+    while (currentAngle<=2*Math.PI+offset);
 
 
-        var i=0;
+    var i=0;
         //ctx.moveTo(this.x,this.y);
         ctx.beginPath();
-       
+
         while(i<this.points.length){
             ctx.lineTo(this.points[i].x,this.points[i].y);
             i++;
@@ -272,14 +320,14 @@ Shape.prototype.regShape= function(ctx) {
         ctx.fill();
         
     }
-      if(this.type == "player" || this.type == "robot"){
+    if(this.type == "player" || this.type == "robot"){
         ctx.fillStyle = "#FFFFFF";
         ctx.stroke();
 //        ctx.font = "bold "+this.size/2+"px arial";
 //        var width = ctx.measureText(this.shapesEaten).width;
 //        var height = ctx.measureText(this.shapesEaten).height;
 //        ctx.fillText(this.shapesEaten, this.getCenter().x-(width/2), this.getCenter().y+(this.size/5));
-    }
+}
 };  
 
 
@@ -314,7 +362,7 @@ Shape.prototype.regShape= function(ctx) {
 //    //ctx.closePath();
 //    //console.log("Square number " + this.id + " has been created at: "+this.x+","+ this.y);
 //};
-        
+
 //not updated according to center
 Shape.prototype.drawSpin = function(ctx) {
     //ctx.save();
@@ -327,31 +375,11 @@ Shape.prototype.drawSpin = function(ctx) {
 };
 
 Shape.prototype.updateAudio = function(player) {
-
     //update audiolocation
-    if(this.isPlayer==false){
 
-       this.panner.setPosition(this.x,this.y,50);
+if(this.isPlayer){
 
-       var midfrequency=(maxfreq-minfreq)/2;
-       this.source.frequency.value=midfrequency;
-
-       var lowerfrequency=196.00;
-       var higherfrequency=1567.98;
-
-       if(this.size<player.size)
-       {
-        this.source.frequency.value=lowerfrequency;
-    }
-
-    if(this.size>player.size)
-    {
-        this.source.frequency.value=higherfrequency;
-    }
-
-} else if(this.isPlayer){
-
-   this.listener.setPosition(this.getCenter().x,this.getCenter().y,50);
+ this.listener.setPosition(this.x,this.y,50);
 
 }
 };
@@ -387,38 +415,38 @@ Shape.prototype.findNextMove = function(){
     //checking robot locations
     robots.forEach(function(robot2){
         if(robot!=robot2){
-        var dist = getDistance(robot2.x,robot2.y,robot.x,robot.y);
-        if(dist<=robot.size*rangeMultiplier && (dist<closestDist || closestDist==-1)){
-            closestDist = dist;
-            closestX = robot2.x;
-            closestY = robot2.y;
-            if(robot.size>robot2.size){
-                robot.targetAcquired = true;
-            }
-             else if(robot.size<robot2.size){
-                 //danger = robot2;
-                 robot.dangerAcquired = true;
-             }
+            var dist = getDistance(robot2.x,robot2.y,robot.x,robot.y);
+            if(dist<=robot.size*rangeMultiplier && (dist<closestDist || closestDist==-1)){
+                closestDist = dist;
+                closestX = robot2.x;
+                closestY = robot2.y;
+                if(robot.size>robot2.size){
+                    robot.targetAcquired = true;
+                }
+            // else if(robot.size<robot2.size){
+            //     danger = robot2;
+            //     robot.dangerAcquired = true;
+            // }
         }
-        }
-    });
+    }
+});
     //checking player location
     var dist = getDistance(player.x,player.y,robot.x,robot.y);
-        if(dist<=robot.size*rangeMultiplier && (dist<closestDist || closestDist==-1)){
-            closestDist = dist;
-            closestX = player.x;
-            closestY = player.y;
-            if(robot.size>player.size){
-                robot.targetAcquired = true;
-            }
+    if(dist<=robot.size*rangeMultiplier && (dist<closestDist || closestDist==-1)){
+        closestDist = dist;
+        closestX = player.x;
+        closestY = player.y;
+        if(robot.size>player.size){
+            robot.targetAcquired = true;
+        }
             // else if(robot.size<player.size){
             //     danger = player;
             //     robot.dangerAcquired = true;
             // }
-      }
+        }
 
 
-    if(robot.targetAcquired){
+        if(robot.targetAcquired){
         //console.log("chasing");
         var maxDist= Math.sqrt(Math.pow(canvas.width,2)+Math.pow(canvas.height,2));   
         var speedFactor=10*((maxDist-closestDist)/maxDist+1); // higher speedFactor means slower acceleration
@@ -450,17 +478,17 @@ Shape.prototype.run = function(shape){
 };
 
 Shape.prototype.checkCollision = function(currentTime,shape2){
-        var shape1 = this;
+    var shape1 = this;
     if (getDistance(shape1.x,shape1.y,shape2.x,shape2.y)<=(shape1.size+shape2.size)/2 && shape2.inCollision==undefined){
-            if (shape1.size>shape2.size){
-                shape1.StartAnimation(currentTime, 500, shape1.size + shape2.size/3,1);
-                shape1.shapesEaten+=1;
-                shape2.speedx=0;
-                shape2.speedy=0;
-                shape2.inCollision = true;
-                shape2.StartAnimation(currentTime, 500, 0,0);
-            }
+        if (shape1.size>shape2.size){
+            shape1.StartAnimation(currentTime, 500, shape1.size + shape2.size/3,1);
+            shape1.shapesEaten+=1;
+            shape2.speedx=0;
+            shape2.speedy=0;
+            shape2.inCollision = true;
+            shape2.StartAnimation(currentTime, 500, 0,0);
         }
+    }
 
 };
 
@@ -471,14 +499,28 @@ Shape.prototype.checkRadar =function() {
   for(var i=0;i<robots.length;i++) {
     var shape2=robots[i];
 
-    if(getDistance(shape1.x,shape1.y,shape2.x,shape2.y)<=shape1.radarSize
+    if(getDistance(shape1.x,shape1.y,shape2.x,shape2.y)<=shape1.radarSize+shape2.size/2
         || getDistance(shape1.x,shape1.y,shape2.x,shape2.y)<=(shape1.radarSize+shape2.size)/2)
     {
-        shape2.updateAudio(shape1);    
-        shape2.gainNode.gain.value = 1;
+
+     //panner.setPosition(this.x,this.y,50);
+
+     if(shape1.size<shape2.size)
+     {
+        flee.gainNode.gain.value=1;
+        break;
+    }
+
+    else if(shape1.size>shape2.size)
+    {
+        chase.gainNode.gain.value=1;
+        break;
+    }    
     }
     else {
-        shape2.gainNode.gain.value = 0;
+        flee.gainNode.gain.value=0;
+        chase.gainNode.gain.value=0;
+
     }
 }
 };
@@ -490,11 +532,11 @@ Shape.prototype.checkCollisions = function(currentTime){
     });
     robots.forEach(function(robot){
         if(entity!=robot){
-        entity.checkCollision(currentTime,robot);
+            entity.checkCollision(currentTime,robot);
         }
     });
     if(entity!=player){
-    entity.checkCollision(currentTime,player);
+        entity.checkCollision(currentTime,player);
     }
 };
 
@@ -558,8 +600,7 @@ Shape.prototype.StartAnimation = function(time, period, newSize,newGain) {
     this.AnimationStartSize = this.size;
     this.AnimationStopSize = newSize;
 
-    this.AnimationStartGain=this.gainNode.gain.value;
-    this.AnimationStopGain=newGain;
+    this.AnimationGain=newGain;
     this.AnimationPeriod = period;
 };
 
@@ -574,31 +615,30 @@ Shape.prototype.DoAnimation = function(time) {
         {
             var sizeDelta = this.AnimationStopSize - this.AnimationStartSize;
 
-            var gainDelta= this.AnimationStopGain-this.AnimationStartGain;
+            if(isAudioLoaded){
+
+            eat.gainNode.gain.value=this.AnimationGain;
+        }
+            // var gainDelta= this.AnimationStopGain-this.AnimationStartGain;
 
             this.size = this.AnimationStartSize + sizeDelta *(deltaTime)/this.AnimationPeriod;
 
-            this.gainNode.gain.value=this.AnimationStartGain + gainDelta *(deltaTime)/this.AnimationPeriod;
+            // this.gainNode.gain.value=this.AnimationStartGain + gainDelta *(deltaTime)/this.AnimationPeriod;
         }
     }
 };
 
 
 Shape.prototype.StopAnimation = function() {
+    if(isAudioLoaded){
+    eat.gainNode.gain.value=0;
+}
     this.size = this.AnimationStopSize;
-    if(this.AnimationStopSize===0)
-    {
-        this.gainNode.gain.value = 0;
-        //console.log(this.source);
-        if (this.source != undefined) {
-            this.source.stop();
-        }
-
-    }
     this.AnimationStartTime = undefined;
     this.AnimationStartSize = undefined;
     this.AnimationStopSize = undefined;
     this.AnimationPeriod = undefined;
+    this.AnimationGain= undefined;
     //this.targetAcquired=false;
     this.justAte=true;
 };
@@ -606,7 +646,7 @@ Shape.prototype.StopAnimation = function() {
 Shape.prototype.drain = function(){
     var drainFactor = this.size*0.001;
     this.size-= drainFactor;
-}
+};
 
 function init() {
     for(var i=0; i<numShapes; i++){
@@ -624,24 +664,18 @@ function init() {
         robots.push(robot);
     }
 
-        var position = main_position_container.pop();
-        player = new Shape(position.x,position.y,player_size,main_color_container.pop(),"player");
+    var position = main_position_container.pop();
+    player = new Shape(position.x,position.y,player_size,main_color_container.pop(),"player",0,0,true);
 };
 
 function regenerateShapes(currentTime){
     if(shapes.length<minNumShapes){
         for(var i=0; i<2; i++){
-        var size = generateSize();
-        var x = generateX(size);
-        var y = generateY(size);
-        var color = getRandomColor();
-        var speedx = getRandomIntInclusive(minspeed,maxspeed);
-        var speedy = getRandomIntInclusive(minspeed,maxspeed);
-            
-        shapes.push(new Shape(x,y,size,color,"square",speedx,speedy,false));
-        shapes[shapes.length-1].StartAnimation(currentTime,500,size,0);
+            var size = generateSize();
+            shapes.push(new Shape(generateX(size),generateY(size),0,getRandomColor(),"square",getRandomIntInclusive(minspeed,maxspeed),getRandomIntInclusive(minspeed,maxspeed),false));
+        //shapes[shapes.length-1].StartAnimation(currentTime,500,size,0);
     }
-    }
+}
 };
 
 document.addEventListener("keydown", keyDownHandler, false);
@@ -692,9 +726,9 @@ function resize_canvas(){
                 shape.y*=changeInHeightRatio;
                 shape.changeSize(changeInHeightRatio);
             });
-                player.x*=changeInWidthRatio;
-                player.y*=changeInHeightRatio;
-                player.changeSize(changeInHeightRatio);
+            player.x*=changeInWidthRatio;
+            player.y*=changeInHeightRatio;
+            player.changeSize(changeInHeightRatio);
             robots.forEach(function(robot){
                 robot.x*=changeInWidthRatio;
                 robot.y*=changeInHeightRatio;
@@ -710,9 +744,9 @@ function resize_canvas(){
                 shape.y*=changeInHeightRatio;
                 shape.changeSize(changeInWidthRatio);
             });
-                player.x*=changeInWidthRatio;
-                player.y*=changeInHeightRatio;
-                player.changeSize(changeInWidthRatio);
+            player.x*=changeInWidthRatio;
+            player.y*=changeInHeightRatio;
+            player.changeSize(changeInWidthRatio);
             robots.forEach(function(robot){
                 robot.x*=changeInWidthRatio;
                 robot.y*=changeInHeightRatio;
@@ -751,7 +785,7 @@ function generateSize(){
 
 
 function update() {
-       
+
     var currentTime = (new Date()).getTime();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     shapes.forEach(function(shape){
@@ -761,7 +795,7 @@ function update() {
     resize_canvas(); 
     regenerateShapes(currentTime);
 
-        player.checkCollisions(currentTime);
+    player.checkCollisions(currentTime);
 
     
     
@@ -782,40 +816,40 @@ function update() {
             shapes.splice(i,1);
         }
     }
-           
 
 
 
-for(var i=0; i<shapes.length; i++){
-    var shape = shapes[i];
-    shape.DoAnimation(currentTime);
-    if(shape.size==0){
-        shapes.splice(i,1);
+
+    for(var i=0; i<shapes.length; i++){
+        var shape = shapes[i];
+        shape.DoAnimation(currentTime);
+        if(shape.size==0){
+            shapes.splice(i,1);
+        }
     }
-}
 
-if (robots.length == 0) {
+    if (robots.length == 0) {
         endGame(true);
         return;
     }
     
     
     player.DoAnimation(currentTime);
-        if(player.size==0){
-            endGame(false);
-            return;
-        }
+    if(player.size==0){
+        endGame(false);
+        return;
+    }
     
     dark();
 
-shapes.forEach(function(shape){
+    shapes.forEach(function(shape){
     //shape.draw(ctx);
     shape.regShape(ctx);
 });
 
-robots.forEach(function(robot){
-    robot.findNextMove();
-    robot.drain();
+    robots.forEach(function(robot){
+        robot.findNextMove();
+        robot.drain();
     //robot.draw(ctx);
     robot.regShape(ctx);
 });
@@ -824,24 +858,26 @@ robots.forEach(function(robot){
     //player.draw(ctx);
     player.regShape(ctx);
     //console.log(player.size)
+    if(isAudioLoaded){
     player.updateAudio(player);
     player.checkRadar();
+}
     player.drawRadar(ctx);
 
 
-var dist = getDistance(mousex,player.x,mousey,player.y);
+    var dist = getDistance(mousex,player.x,mousey,player.y);
 
-var maxDist= Math.sqrt(Math.pow(canvas.width,2)+Math.pow(canvas.height,2));
+    var maxDist= Math.sqrt(Math.pow(canvas.width,2)+Math.pow(canvas.height,2));
 
-var speedFactor=10*((maxDist-dist)/maxDist+1);
+    var speedFactor=10*((maxDist-dist)/maxDist+1);
 
 
-if(mousex>0 && mousex<canvas.width &&mousey>0 &&mousey<canvas.height){
-    player.x=(mousex-player.x)/speedFactor+player.x;
-    player.y=(mousey-player.y)/speedFactor+player.y;
-}
-updateScore(player.shapesEaten);
-var speed = dist/50;
+    if(mousex>0 && mousex<canvas.width &&mousey>0 &&mousey<canvas.height){
+        player.x=(mousex-player.x)/speedFactor+player.x;
+        player.y=(mousey-player.y)/speedFactor+player.y;
+    }
+    updateScore(player.shapesEaten);
+    var speed = dist/50;
 
     //arrowkeys
     if(rightPressed && x < canvas.width-(size*2)) {
@@ -863,11 +899,6 @@ var speed = dist/50;
 
 
 function endGame(win){
-    shapes.forEach(function(shape){
-        if (shape.source!=undefined) {
-            shape.source.stop();
-        }
-    });
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.font = "30px Arial";
     ctx.textBaseline = 'middle';
@@ -881,7 +912,14 @@ function endGame(win){
         //ctx.fillText("game over",10,50);
         ctx.fillText("you lost.",10,50);
     }
-
+    shapes.forEach(function(shape){
+        if (shape.source!=undefined) {
+            shape.source.stop();
+        }
+    });
+    flee.bufferSource.stop();
+    chase.bufferSource.stop();
+    eat.bufferSource.stop();
 }
 
 function getRandomIntInclusive(min, max) {
@@ -889,9 +927,9 @@ function getRandomIntInclusive(min, max) {
   max = Math.floor(max);
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
-        
+
 function dark() {
-    
+
     ctx.fillStyle="#000000"
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.beginPath();
