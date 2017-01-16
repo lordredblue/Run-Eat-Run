@@ -629,8 +629,17 @@ function regenerateShapes(currentTime){
     if(shapes.length<minNumShapes){
         for(var i=0; i<2; i++){
         var size = generateSize();
-        shapes.push(new Shape(generateX(size),generateY(size),0,getRandomColor(),"square",getRandomIntInclusive(minspeed,maxspeed),getRandomIntInclusive(minspeed,maxspeed),false));
-        //shapes[shapes.length-1].StartAnimation(currentTime,500,size,0);
+        var x = generateX(size);
+        var y = generateY(size);
+        var color = getRandomColor();
+        var speedx = getRandomIntInclusive(minspeed,maxspeed);
+        var speedy = getRandomIntInclusive(minspeed,maxspeed);
+        console.log("size",size);
+        console.log("x",x);
+        console.log("y",y);
+            
+        shapes.push(new Shape(x,y,size,color,"square",speedx,speedy,false));
+        shapes[shapes.length-1].StartAnimation(currentTime,500,size,0);
     }
     }
 };
@@ -797,7 +806,7 @@ if (robots.length == 0) {
             return;
         }
     
-    dark();
+    //dark();
 
 shapes.forEach(function(shape){
     //shape.draw(ctx);
