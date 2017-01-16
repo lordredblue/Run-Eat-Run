@@ -395,10 +395,10 @@ Shape.prototype.findNextMove = function(){
             if(robot.size>robot2.size){
                 robot.targetAcquired = true;
             }
-            // else if(robot.size<robot2.size){
-            //     danger = robot2;
-            //     robot.dangerAcquired = true;
-            // }
+             else if(robot.size<robot2.size){
+                 //danger = robot2;
+                 robot.dangerAcquired = true;
+             }
         }
         }
     });
@@ -589,7 +589,10 @@ Shape.prototype.StopAnimation = function() {
     if(this.AnimationStopSize===0)
     {
         this.gainNode.gain.value = 0;
-        //this.source.stop();
+        //console.log(this.source);
+        if (this.source != undefined) {
+            this.source.stop();
+        }
 
     }
     this.AnimationStartTime = undefined;
@@ -634,9 +637,6 @@ function regenerateShapes(currentTime){
         var color = getRandomColor();
         var speedx = getRandomIntInclusive(minspeed,maxspeed);
         var speedy = getRandomIntInclusive(minspeed,maxspeed);
-        console.log("size",size);
-        console.log("x",x);
-        console.log("y",y);
             
         shapes.push(new Shape(x,y,size,color,"square",speedx,speedy,false));
         shapes[shapes.length-1].StartAnimation(currentTime,500,size,0);
@@ -806,7 +806,7 @@ if (robots.length == 0) {
             return;
         }
     
-    //dark();
+    dark();
 
 shapes.forEach(function(shape){
     //shape.draw(ctx);
@@ -863,6 +863,11 @@ var speed = dist/50;
 
 
 function endGame(win){
+    shapes.forEach(function(shape){
+        if (shape.source!=undefined) {
+            shape.source.stop();
+        }
+    });
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.font = "30px Arial";
     ctx.textBaseline = 'middle';
@@ -876,11 +881,6 @@ function endGame(win){
         //ctx.fillText("game over",10,50);
         ctx.fillText("you lost.",10,50);
     }
-    shapes.forEach(function(shape){
-        if (shape.source!=undefined) {
-            shape.source.stop();
-        }
-    });
 
 }
 
