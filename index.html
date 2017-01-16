@@ -273,8 +273,8 @@ Shape.prototype.regShape= function(ctx) {
         
     }
       if(this.type == "player" || this.type == "robot"){
-        ctx.fillStyle = "white";
-          ctx.stroke();
+        ctx.fillStyle = "#FFFFFF";
+        ctx.stroke();
 //        ctx.font = "bold "+this.size/2+"px arial";
 //        var width = ctx.measureText(this.shapesEaten).width;
 //        var height = ctx.measureText(this.shapesEaten).height;
@@ -630,7 +630,7 @@ function regenerateShapes(currentTime){
         for(var i=0; i<2; i++){
         var size = generateSize();
         shapes.push(new Shape(generateX(size),generateY(size),0,getRandomColor(),"square",getRandomIntInclusive(minspeed,maxspeed),getRandomIntInclusive(minspeed,maxspeed),false));
-        shapes[shapes.length-1].StartAnimation(currentTime,500,size,0);
+        //shapes[shapes.length-1].StartAnimation(currentTime,500,size,0);
     }
     }
 };
@@ -754,11 +754,7 @@ function update() {
 
         player.checkCollisions(currentTime);
 
-        player.DoAnimation(currentTime);
-        if(player.size==0){
-            endGame(false);
-            return;
-        }
+    
     
     for(var i=0; i<robots.length; i++){
         var robot = robots[i];
@@ -778,15 +774,7 @@ function update() {
         }
     }
            
-//make dark
-    
-    ctx.fillStyle="#000000"
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.beginPath();
-    ctx.arc(player.x, player.y, player.radarSize, 0, Math.PI*2);
-    ctx.closePath();
-    ctx.clip();
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
 
 
 for(var i=0; i<shapes.length; i++){
@@ -801,6 +789,15 @@ if (robots.length == 0) {
         endGame(true);
         return;
     }
+    
+    
+    player.DoAnimation(currentTime);
+        if(player.size==0){
+            endGame(false);
+            return;
+        }
+    
+    dark();
 
 shapes.forEach(function(shape){
     //shape.draw(ctx);
@@ -882,6 +879,17 @@ function getRandomIntInclusive(min, max) {
   min = Math.ceil(min);
   max = Math.floor(max);
   return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+        
+function dark() {
+    
+    ctx.fillStyle="#000000"
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.beginPath();
+    ctx.arc(player.x, player.y, player.radarSize, 0, Math.PI*2);
+    ctx.closePath();
+    ctx.clip();
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
 var startTime = (new Date()).getTime();
