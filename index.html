@@ -91,7 +91,7 @@
 var mousex;
 var mousey;
 var canvas = document.getElementById("myCanvas");
-canvas.style.background = 'black';
+canvas.style.background = 'white';
 canvas.addEventListener('mousemove', function(event){
     mousex = event.clientX-canvas.getBoundingClientRect().left;
     mousey = event.clientY-canvas.getBoundingClientRect().top;
@@ -208,7 +208,7 @@ main_position_container.push({x:0,y:canvas.height-robot_size});
 main_position_container.push({x:canvas.width-robot_size,y:0});
 
 var maxNumShapes=20;
-var minNumShapes=10;
+var minNumShapes=15;
 var numShapes = getRandomIntInclusive(minNumShapes,maxNumShapes);
 
 var player = undefined;
@@ -222,7 +222,7 @@ var upPressed = false;
 var downPressed = false;
 
 //Shape sizes
-var maxsize = 25;
+var maxsize = 20;
 var minsize = 15;
 var maxfreq=300;
 var minfreq=2000;
@@ -250,7 +250,7 @@ var Point = function (x,y) {
 };
 
 //Shape object
-var Shape = function(x,y,size,color,type,speedx,speedy,isPlayer){
+var Shape = function(x,y,size,color,speedx,speedy,isPlayer,type){
     console.log("Shape created");
     this.x = x;
     this.y = y;
@@ -355,7 +355,8 @@ if (this.sides==0) {
         
     }
     if(this.type == "player" || this.type == "robot"){
-        ctx.fillStyle = "#FFFFFF";
+        ctx.lineWidth = this.size/15;
+        ctx.strokeStyle = "black";
         ctx.stroke();
 //        ctx.font = "bold "+this.size/2+"px arial";
 //        var width = ctx.measureText(this.shapesEaten).width;
@@ -606,14 +607,14 @@ Shape.prototype.autoMove = function(){
         shape.speedx*=-1;
         shape.x-=1;
     }
-    if(shape.speedx<0 && newX>0){
+    if(shape.speedx<0 && newX>shape.size){
         shape.x = newX;
     }
     else if (shape.speedx<0){
         shape.speedx*=-1;
         shape.x+=1;
     }
-    if(shape.speedy<0 && newY>0){
+    if(shape.speedy<0 && newY>shape.size){
         shape.y = newY;
     }
     else if (shape.speedy<0){
@@ -690,12 +691,12 @@ Shape.prototype.drain = function(){
 function init() {
     for(var i=0; i<numShapes; i++){
         var size = generateSize();
-        shapes.push(new Shape(generateX(size),generateY(size),size,getRandomColor(),"square",getRandomIntInclusive(minspeed,maxspeed),getRandomIntInclusive(minspeed,maxspeed),false));
+        shapes.push(new Shape(generateX(size),generateY(size),size,getRandomColor(),getRandomIntInclusive(minspeed,maxspeed),getRandomIntInclusive(minspeed,maxspeed),false,"shape"));
     }
 
     for(var i=0; i<robot_count; i++){
         var position = main_position_container.pop();
-        var robot = new Shape(position.x,position.y,robot_size,main_color_container.pop(),"robot",0,0,false);
+        var robot = new Shape(position.x,position.y,robot_size,main_color_container.pop(),0,0,false,"robot");
         if(robot.x==0){robot.speedx=robot_speed;}
         else{robot.speedx=-robot_speed;}
         if(robot.y==0){robot.speedy=robot_speed;}
@@ -704,17 +705,17 @@ function init() {
     }
 
     var position = main_position_container.pop();
-    player = new Shape(position.x,position.y,player_size,main_color_container.pop(),"player",0,0,true);
+    player = new Shape(position.x,position.y,player_size,main_color_container.pop(),0,0,true,"player");
 };
 
 function regenerateShapes(currentTime,numShapesRegen){
     if(shapes.length<numShapesRegen){
         for(var i=0; i<2; i++){
             var size = generateSize();
-            shapes.push(new Shape(generateX(size),generateY(size),0,getRandomColor(),"square",getRandomIntInclusive(minspeed,maxspeed),getRandomIntInclusive(minspeed,maxspeed),false));
-        //shapes[shapes.length-1].StartAnimation(currentTime,500,size,0);
+            shapes.push(new Shape(generateX(size),generateY(size),size,getRandomColor(),getRandomIntInclusive(minspeed,maxspeed),getRandomIntInclusive(minspeed,maxspeed),false,"shape"));
+            //shapes[shapes.length-1].StartAnimation(currentTime,500,size,0);
+        }
     }
-}
 };
 
 document.addEventListener("keydown", keyDownHandler, false);
@@ -835,7 +836,11 @@ function update() {
     regenerateShapes(currentTime,player.numShapesRegen());
 
     player.checkCollisions(currentTime);
-
+    player.DoAnimation(currentTime);
+    if(player.size==0){
+        endGame(false);
+        return;
+    }
     
     
     for(var i=0; i<robots.length; i++){
@@ -849,7 +854,7 @@ function update() {
     
     for(var i=0; i<shapes.length; i++){
         var shape = shapes[i];
-        shape.checkCollisions(currentTime);
+        //shape.checkCollisions(currentTime);
         shape.DoAnimation(currentTime);
         if(shape.size==0){
             shapes.splice(i,1);
@@ -872,12 +877,6 @@ function update() {
         return;
     }
     
-    
-    player.DoAnimation(currentTime);
-    if(player.size==0){
-        endGame(false);
-        return;
-    }
     
     dark();
 
@@ -938,6 +937,7 @@ function update() {
 
 
 function endGame(win){
+    canvas.style.background = 'black';
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.font = "30px Arial";
     ctx.textBaseline = 'middle';
@@ -945,11 +945,10 @@ function endGame(win){
     ctx.fillStyle="#FFFFFF";
     if (win){
         //ctx.fillText("game over",10,50);
-        ctx.fillText("you won",10,50);
-        console.log("win");
+        ctx.fillText("YOU WON!",(canvas.width/2-canvas.width/20),(canvas.height/2-canvas.height/40));
     } else {
         //ctx.fillText("game over",10,50);
-        ctx.fillText("you lost.",10,50);
+        ctx.fillText("YOU LOST!",(canvas.width/2-canvas.width/20),(canvas.height/2-canvas.height/40));
     }
     shapes.forEach(function(shape){
         if (shape.source!=undefined) {
