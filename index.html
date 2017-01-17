@@ -396,6 +396,11 @@ Shape.prototype.updateAudio = function(player) {
 Shape.prototype.changeSize = function(ratio) {
     this.size*=ratio;
 };
+        
+        
+Shape.prototype.numShapesRegen = function(){
+    return 20*numShapes/this.size;
+};  
 
 Shape.prototype.findNextMove = function(){
     var closestX;
@@ -676,8 +681,8 @@ function init() {
     player = new Shape(position.x,position.y,player_size,main_color_container.pop(),"player",0,0,true);
 };
 
-function regenerateShapes(currentTime){
-    if(shapes.length<minNumShapes){
+function regenerateShapes(currentTime,numShapesRegen){
+    if(shapes.length<numShapesRegen){
         for(var i=0; i<2; i++){
             var size = generateSize();
             shapes.push(new Shape(generateX(size),generateY(size),0,getRandomColor(),"square",getRandomIntInclusive(minspeed,maxspeed),getRandomIntInclusive(minspeed,maxspeed),false));
@@ -801,7 +806,7 @@ function update() {
     });
     
     resize_canvas(); 
-    regenerateShapes(currentTime);
+    regenerateShapes(currentTime,player.numShapesRegen());
 
     player.checkCollisions(currentTime);
 
