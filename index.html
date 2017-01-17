@@ -32,16 +32,17 @@
   <body>
 
     <canvas id="myCanvas" width="1000" height="750" ></canvas>
-    
+
     <div id="hud">
         <table>
-            <tr><td>Score:</span></td><td id = 'score'>0</td><td><input type="button" value="Play Again" onClick="window.location.reload()"></input></td></tr>
+            <tr><td>Score:</span></td><td id = 'score'>0</td><td><input type="button" value="Play Again" onClick="window.location.reload()"></input></td>
+                <td><input type="button" value="Mute Music" onClick="muteMusicVolume()"></input></td>
+                <td><input type="button" value="Mute Sounds" onClick="muteSoundVolume()"></input></td>
+            </tr>
         </table>
     </div>
 
     <script type="text/javascript" src="buffer-loader.js"></script>
-
-    
     <script>
         "use strict";
 
@@ -49,6 +50,30 @@
           var myAudio = document.getElementById("audio1");  
     myAudio.volume = 0.1; //Changed this to 0.5 or 50% volume since the function is called Set Half Volume ;)
 }
+
+function muteMusicVolume() {
+  var myAudio = document.getElementById("audio1"); 
+  if  (myAudio.volume > 0){
+    myAudio.volume = 0;
+}
+else {
+   myAudio.volume = .1;
+}
+};
+
+function muteSoundVolume() {
+    if(isAudioLoaded==false)
+    {
+        isAudioLoaded=true;
+    }
+    else{
+        isAudioLoaded=false;
+        flee.gainNode.gain.value=0;
+        chase.gainNode.gain.value=0;
+        eat.gainNode.gain.value=0;
+    }
+};
+
 var mousex;
 var mousey;
 var canvas = document.getElementById("myCanvas");
@@ -72,21 +97,21 @@ var chase;
 var eat;
 var isAudioLoaded=false;
 
-   var bufferLoader = new BufferLoader(
-        audioCtx,
-        [
-        "fleesound.mp3",
-        "chasesound.mp3",
-        "eatsound.mp3",
-        ],
-        finishedLoading
+var bufferLoader = new BufferLoader(
+    audioCtx,
+    [
+    "fleesound.mp3",
+    "chasesound.mp3",
+    "eatsound.mp3",
+    ],
+    finishedLoading
     );
 
-    bufferLoader.load();
+bufferLoader.load();
 
 
 
-    function finishedLoading(bufferList) {
+function finishedLoading(bufferList) {
     // Create three sources and buffers
     fleesound = audioCtx.createBufferSource();
     chasesound = audioCtx.createBufferSource();
@@ -111,30 +136,30 @@ var AudioPath = function(bs){
     this.gainNode = audioCtx.createGain();
     this.gainNode.connect(audioCtx.destination);
 
-        this.panner = audioCtx.createPanner();
-        this.bufferSource.connect(this.panner);
-        this.panner.connect(this.gainNode);
+    this.panner = audioCtx.createPanner();
+    this.bufferSource.connect(this.panner);
+    this.panner.connect(this.gainNode);
 
-        this.gainNode.gain.value = 0;
-        this.bufferSource.start();
+    this.gainNode.gain.value = 0;
+    this.bufferSource.start();
 
-        this.panner.panningModel = 'HRTF';
-        this.panner.distanceModel = 'inverse';
-        this.panner.refDistance = 5;
-        this.panner.maxDistance = 10000;
-        this.panner.rolloffFactor = 1;
-        this.panner.coneInnerAngle = 360;
-        this.panner.coneOuterAngle = 0;
-        this.panner.coneOuterGain = 0;
+    this.panner.panningModel = 'HRTF';
+    this.panner.distanceModel = 'inverse';
+    this.panner.refDistance = 5;
+    this.panner.maxDistance = 10000;
+    this.panner.rolloffFactor = 1;
+    this.panner.coneInnerAngle = 360;
+    this.panner.coneOuterAngle = 0;
+    this.panner.coneOuterGain = 0;
 
-        if(this.panner.orientationX) {
-          this.panner.orientationX.value = 1;
-          this.panner.orientationY.value = 0;
-          this.panner.orientationZ.value = 0;
-      } else {
-          this.panner.setOrientation(1,0,0);
-      }
-  };
+    if(this.panner.orientationX) {
+      this.panner.orientationX.value = 1;
+      this.panner.orientationY.value = 0;
+      this.panner.orientationZ.value = 0;
+  } else {
+      this.panner.setOrientation(1,0,0);
+  }
+};
 
 
 var initradarsize=100;
@@ -224,15 +249,15 @@ var Shape = function(x,y,size,color,type,speedx,speedy,isPlayer){
 
     this.radarSize=1;
 
- if(this.isPlayer==true){
-    this.listener = audioCtx.listener;
+    if(this.isPlayer==true){
+        this.listener = audioCtx.listener;
 
-    if(this.listener.forwardX) {
-      this.listener.forwardX.value = 0;
-      this.listener.forwardY.value = 0;
-      this.listener.forwardZ.value = -1;
-      this.listener.upX.value = 0;
-      this.listener.upY.value = 1;
+        if(this.listener.forwardX) {
+          this.listener.forwardX.value = 0;
+          this.listener.forwardY.value = 0;
+          this.listener.forwardZ.value = -1;
+          this.listener.upX.value = 0;
+          this.listener.upY.value = 1;
       // this.listener.upZ.value = 0;
   } else {
       this.listener.setOrientation(0,0,-1,0,1,0);
@@ -265,12 +290,12 @@ if (this.sides==0) {
     if (this.sides==3) {
         var offset=Math.PI/6
     } else if (this.sides==4) {
-       var offset=Math.PI/4
-   } else if (this.sides==5) {
-       var offset=3*Math.PI/2
-   } else if (this.sides==6) {
-       var offset=Math.PI
-   }
+     var offset=Math.PI/4
+ } else if (this.sides==5) {
+     var offset=3*Math.PI/2
+ } else if (this.sides==6) {
+     var offset=Math.PI
+ }
 
         //    x = cx + r * cos(a)
         //    y = cy + r * sin(a)
@@ -361,11 +386,11 @@ Shape.prototype.drawSpin = function(ctx) {
 Shape.prototype.updateAudio = function(player) {
     //update audiolocation
 
-if(this.isPlayer){
+    if(this.isPlayer){
 
- this.listener.setPosition(this.x,this.y,50);
+       this.listener.setPosition(this.x,this.y,50);
 
-}
+   }
 };
 
 Shape.prototype.changeSize = function(ratio) {
@@ -487,8 +512,8 @@ Shape.prototype.checkRadar =function() {
         || getDistance(shape1.x,shape1.y,shape2.x,shape2.y)<=(shape1.radarSize+shape2.size)/2)
     {
 
-     if(shape1.size<shape2.size)
-     {
+       if(shape1.size<shape2.size)
+       {
         flee.gainNode.gain.value=1;
         flee.panner.setPosition(shape2.x,shape2.y,50);
         break;
@@ -500,11 +525,11 @@ Shape.prototype.checkRadar =function() {
         chase.panner.setPosition(shape2.x,shape2.y,50);
         break;
     }    
-    }
-    else {
-        flee.gainNode.gain.value=0;
-        chase.gainNode.gain.value=0;
-    }
+}
+else {
+    flee.gainNode.gain.value=0;
+    chase.gainNode.gain.value=0;
+}
 }
 };
 
@@ -600,8 +625,8 @@ Shape.prototype.DoAnimation = function(time) {
 
             if(isAudioLoaded){
 
-            eat.gainNode.gain.value=this.AnimationGain;
-        }
+                eat.gainNode.gain.value=this.AnimationGain;
+            }
             // var gainDelta= this.AnimationStopGain-this.AnimationStartGain;
 
             this.size = this.AnimationStartSize + sizeDelta *(deltaTime)/this.AnimationPeriod;
@@ -614,8 +639,8 @@ Shape.prototype.DoAnimation = function(time) {
 
 Shape.prototype.StopAnimation = function() {
     if(isAudioLoaded){
-    eat.gainNode.gain.value=0;
-}
+        eat.gainNode.gain.value=0;
+    }
     this.size = this.AnimationStopSize;
     this.AnimationStartTime = undefined;
     this.AnimationStartSize = undefined;
@@ -842,9 +867,9 @@ function update() {
     player.regShape(ctx);
     //console.log(player.size)
     if(isAudioLoaded){
-    player.updateAudio(player);
-    player.checkRadar();
-}
+        player.updateAudio(player);
+        player.checkRadar();
+    }
     player.drawRadar(ctx);
 
 
