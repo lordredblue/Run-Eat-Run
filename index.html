@@ -21,7 +21,7 @@
         #hud  { position: absolute; top:; background-color: yellow; opacity: 0.8; border: 4px solid black; }
     </style>
 
-    <audio loop="loop" id= "audio1" controls autoplay onloadeddata="setHalfVolume()">
+    <audio loop="loop" id= "audio1" controls autoplay onloadeddata="initialVolume()">
       <source src="runeatrundraft1.mp3"> 
           Your browser does not support the audio element.
       </audio>
@@ -46,28 +46,42 @@
     <script>
         "use strict";
 
-        function setHalfVolume() {
-          var myAudio = document.getElementById("audio1");  
-    myAudio.volume = 0.1; //Changed this to 0.5 or 50% volume since the function is called Set Half Volume ;)
-}
+ var musicVolume;
+        var isSoundNotMuted;
+        var playSound=false;
 
-function muteMusicVolume() {
-  var myAudio = document.getElementById("audio1"); 
-  if  (myAudio.volume > 0){
-    myAudio.volume = 0;
-}
-else {
-   myAudio.volume = .1;
-}
-};
+        function initialVolume() {
+            var myAudio = document.getElementById("audio1");  
+            if(localStorage.getItem('musicVolume')){   
+                myAudio.volume = localStorage.getItem('musicVolume'); 
+            }
+            else {
+                myAudio.volume = 0.1; 
+                localStorage.setItem('musicVolume',.1);
+            }
+        };
 
-function muteSoundVolume() {
-    if(isAudioLoaded==false)
+        function muteMusicVolume() {
+          var myAudio = document.getElementById("audio1"); 
+          if  (myAudio.volume > 0){
+            myAudio.volume = 0;
+            localStorage.setItem('musicVolume',0);
+        }
+        else {
+         myAudio.volume = .1;
+         localStorage.setItem('musicVolume',.1);
+     }
+ };
+
+ function muteSoundVolume() {
+    if(playSound===false)
     {
-        isAudioLoaded=true;
+        playSound=true;
+        localStorage.setItem('isSoundNotMuted',true);
     }
     else{
-        isAudioLoaded=false;
+        playSound=false;
+        localStorage.setItem('isSoundNotMuted',false);
         flee.gainNode.gain.value=0;
         chase.gainNode.gain.value=0;
         eat.gainNode.gain.value=0;
@@ -122,8 +136,19 @@ function finishedLoading(bufferList) {
     flee= new AudioPath(fleesound);
     chase=new AudioPath(chasesound);
     eat=new AudioPath(eatsound);
-    isAudioLoaded=true;
-}
+    flee.gainNode.gain.value=0;
+    chase.gainNode.gain.value=0;
+    eat.gainNode.gain.value=0;
+
+    if(localStorage.getItem('isSoundNotMuted')){
+        playSound=('true' ===localStorage.getItem('isSoundNotMuted'));
+    }
+    else
+    {
+        playSound=true;
+        localStorage.setItem('isSoundNotMuted',true);
+    }
+};
 
 
 var AudioPath = function(bs){
@@ -628,10 +653,11 @@ Shape.prototype.DoAnimation = function(time) {
         {
             var sizeDelta = this.AnimationStopSize - this.AnimationStartSize;
 
-            if(isAudioLoaded){
+            if(playSound && this.isPlayer){
 
                 eat.gainNode.gain.value=this.AnimationGain;
             }
+
             // var gainDelta= this.AnimationStopGain-this.AnimationStartGain;
 
             this.size = this.AnimationStartSize + sizeDelta *(deltaTime)/this.AnimationPeriod;
@@ -871,7 +897,7 @@ function update() {
     //player.draw(ctx);
     player.regShape(ctx);
     //console.log(player.size)
-    if(isAudioLoaded){
+    if(playSound){
         player.updateAudio(player);
         player.checkRadar();
     }
