@@ -669,7 +669,7 @@ Shape.prototype.DoAnimation = function(time) {
 
 
 Shape.prototype.StopAnimation = function() {
-    if(isAudioLoaded){
+    if(playSound){
         eat.gainNode.gain.value=0;
     }
     this.size = this.AnimationStopSize;
