@@ -44,7 +44,7 @@
 
     <div id="hud">
         <table>
-            <tr><td>Score:</span></td><td id = 'score'>0</td><td><input type="button" value="Play Again" onClick="window.location.reload()"></input></td>
+            <tr><td>Score:</span></td><td id = 'score'>0</td><td>High Score:</span></td><td id = 'highscore'>0</td><td><input type="button" value="Play Again" onClick="window.location.reload()"></input></td>
                 <td><input type="button" value="Music" onClick="muteMusicVolume()"></input></td>
                 <td><input type="button" value="Sounds" onClick="muteSoundVolume()"></input></td>
             </tr>
@@ -211,6 +211,9 @@ var maxspeed = 0;
 var minspeed = 0;
 var spinSpeed = 250;
 
+//highscore
+var highscore;
+
 function getRandomColor() {
     var letters = '0123456789ABCDEF';
     var color = '#';
@@ -224,6 +227,29 @@ function getRandomColor() {
 function updateScore(integer){
     document.getElementById("score").innerHTML = integer;
 }
+
+function updateHighScore(integer){
+
+    if(localStorage.getItem('highscore'))
+    {
+        var oldhighscore=parseInt(localStorage.getItem('highscore'));
+        if (oldhighscore<integer)
+        {
+            localStorage.setItem('highscore',integer);
+            document.getElementById("highscore").innerHTML = integer;
+        }
+        else{
+            document.getElementById("highscore").innerHTML = oldhighscore;
+        }
+
+    }
+    else {
+
+        highscore=integer;
+        localStorage.setItem('highscore',integer);
+        document.getElementById("highscore").innerHTML = integer;
+    }
+};
 
 var Point = function (x,y) {
     this.x=x;
@@ -908,6 +934,7 @@ function update() {
         player.y=(mousey-player.y)/speedFactor+player.y;
     }
     updateScore(player.shapesEaten);
+    updateHighScore(player.shapesEaten);
     var speed = dist/50;
 
     window.requestAnimationFrame(update);
@@ -919,14 +946,16 @@ function endGame(win){
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.font = "30px Arial";
     ctx.textBaseline = 'middle';
+    ctx.textAlign="center"; 
     //ctx.textAlign = 'center';
     ctx.fillStyle="#FFFFFF";
     if (win){
         //ctx.fillText("game over",10,50);
-        ctx.fillText("YOU WON!",(canvas.width/2-canvas.width/20),(canvas.height/2-canvas.height/40));
+        ctx.fillText("YOU WON!",(canvas.width/2),(canvas.height/2-canvas.height/40));
     } else {
         //ctx.fillText("game over",10,50);
-        ctx.fillText("YOU LOST!",(canvas.width/2-canvas.width/20),(canvas.height/2-canvas.height/40));
+        ctx.fillText("YOU WERE EATEN!",(canvas.width/2),(canvas.height/2-canvas.height/40));
+        ctx.fillText("Your Score=  "+player.shapesEaten,(canvas.width/2),(2*canvas.height/3));
     }
     shapes.forEach(function(shape){
         if (shape.source!=undefined) {
