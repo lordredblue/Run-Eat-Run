@@ -33,7 +33,6 @@
 
     <audio loop="loop" id= "audio1" autoplay onloadeddata="initialVolume()">
       <source src="runeatrundraft1.mp3"> 
-          Your browser does not support the audio element.
       </audio>
 
 
@@ -56,9 +55,28 @@
     <script>
         "use strict";
 
-var musicVolume;
-var isSoundNotMuted;
+//audioctx
+var AudioContext = window.AudioContext || window.webkitAudioContext;
+var audioCtx = new AudioContext();
+
+var flee;
+var chase;
+var eat;
+
+var isSoundPlaying;
 var playSound=false;
+
+var bufferLoader = new BufferLoader(
+    audioCtx,
+    [
+    "fleesound.mp3",
+    "chasesound.mp3",
+    "eatsound.mp3",
+    ],
+    finishedLoading
+    );
+
+bufferLoader.load();
 
 function initialVolume() {
     var myAudio = document.getElementById("audio1");  
@@ -76,90 +94,52 @@ function muteMusicVolume() {
   if  (myAudio.volume > 0){
     myAudio.volume = 0;
     localStorage.setItem('musicVolume',0);
-    }
-    else {
-     myAudio.volume = .1;
-     localStorage.setItem('musicVolume',.1);
-    }
+}
+else {
+ myAudio.volume = .1;
+ localStorage.setItem('musicVolume',.1);
+}
 };
 
- function muteSoundVolume() {
+function muteSoundVolume() {
     if(playSound===false)
     {
         playSound=true;
-        localStorage.setItem('isSoundNotMuted',true);
+        localStorage.setItem('isSoundPlaying',true);
     }
     else{
         playSound=false;
-        localStorage.setItem('isSoundNotMuted',false);
+        localStorage.setItem('isSoundPlaying',false);
         flee.gainNode.gain.value=0;
         chase.gainNode.gain.value=0;
         eat.gainNode.gain.value=0;
     }
 };
 
-var mousex;
-var mousey;
-var canvas = document.getElementById("myCanvas");
-canvas.style.background = 'white';
-canvas.addEventListener('mousemove', function(event){
-    mousex = event.clientX-canvas.getBoundingClientRect().left;
-    mousey = event.clientY-canvas.getBoundingClientRect().top;
-});
-var ctx = canvas.getContext("2d");
-
-//audioctx
-var AudioContext = window.AudioContext || window.webkitAudioContext;
-var audioCtx = new AudioContext();
-
-var fleesound;
-var chasesound;
-var eatsound;
-
-var flee;
-var chase;
-var eat;
-var isAudioLoaded=false;
-
-var bufferLoader = new BufferLoader(
-    audioCtx,
-    [
-    "fleesound.mp3",
-    "chasesound.mp3",
-    "eatsound.mp3",
-    ],
-    finishedLoading
-    );
-
-bufferLoader.load();
-
-
-
 function finishedLoading(bufferList) {
     // Create three sources and buffers
-    fleesound = audioCtx.createBufferSource();
-    chasesound = audioCtx.createBufferSource();
-    eatsound = audioCtx.createBufferSource();
-    fleesound.buffer = bufferList[0];
-    chasesound.buffer = bufferList[1];
-    eatsound.buffer = bufferList[2];
-    flee= new AudioPath(fleesound);
-    chase=new AudioPath(chasesound);
-    eat=new AudioPath(eatsound);
+     var fleesoundsource = audioCtx.createBufferSource();
+     var chasesoundsource = audioCtx.createBufferSource();
+     var eatsoundsource = audioCtx.createBufferSource();
+    fleesoundsource.buffer = bufferList[0];
+    chasesoundsource.buffer = bufferList[1];
+    eatsoundsource.buffer = bufferList[2];
+    flee= new AudioPath(fleesoundsource);
+    chase=new AudioPath(chasesoundsource);
+    eat=new AudioPath(eatsoundsource);
     flee.gainNode.gain.value=0;
     chase.gainNode.gain.value=0;
     eat.gainNode.gain.value=0;
 
-    if(localStorage.getItem('isSoundNotMuted')){
-        playSound=('true' ===localStorage.getItem('isSoundNotMuted'));
+    if(localStorage.getItem('isSoundPlaying')){
+        playSound=('true' ===localStorage.getItem('isSoundPlaying'));
     }
     else
     {
         playSound=true;
-        localStorage.setItem('isSoundNotMuted',true);
+        localStorage.setItem('isSoundPlaying',true);
     }
 };
-
 
 var AudioPath = function(bs){
 
@@ -196,8 +176,16 @@ var AudioPath = function(bs){
   }
 };
 
+var mousex;
+var mousey;
+var canvas = document.getElementById("myCanvas");
+canvas.style.background = 'white';
+canvas.addEventListener('mousemove', function(event){
+    mousex = event.clientX-canvas.getBoundingClientRect().left;
+    mousey = event.clientY-canvas.getBoundingClientRect().top;
+});
+var ctx = canvas.getContext("2d");
 
-var initradarsize=100;
 var ratio=16/9; //aspect ratio for canvas size
 var player_size = 30;
 var robot_size = player_size; //fair game
@@ -219,8 +207,6 @@ var shapes = [];
 //Shape sizes
 var maxsize = 20;
 var minsize = 15;
-var maxfreq=300;
-var minfreq=2000;
 var maxspeed = 0;
 var minspeed = 0;
 var spinSpeed = 250;
@@ -267,7 +253,7 @@ var Shape = function(x,y,size,color,speedx,speedy,isPlayer,type){
         this.sides=0;
     }
 
-    this.radarSize=1;
+    this.radarSize=this.size*3;
 
     if(this.isPlayer==true){
         this.listener = audioCtx.listener;
