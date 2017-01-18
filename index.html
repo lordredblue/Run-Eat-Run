@@ -63,7 +63,7 @@ var GameWorld =
 	SizeRatio: 3,
 	ViewPortX: 0,
 	ViewPortY: 0,
-	OutsideColor:'red',
+	OutsideColor:'grey',
 
 	Initialize:function(cvs)
 	{
@@ -253,9 +253,8 @@ var AudioPath = function(bs){
 var ratio=16/9; //aspect ratio for canvas size
 var player_size = 30;
 var robot_size = player_size; //fair game
-var robot_speed = 3;//main speed magnitude
+var robot_speed = 5;//main speed magnitude
 
-//sum of players and robots should be 4!
 var player_count = 1;
 var robot_count = 5;
 
@@ -424,9 +423,9 @@ if (this.sides==0) {
         
     }
     if(this.type == "player" || this.type == "robot"){
-        ctx.lineWidth = this.size/15;
-        ctx.strokeStyle = "black";
-        ctx.stroke();
+        // ctx.lineWidth = this.size/15;
+        // ctx.strokeStyle = "black";
+        // ctx.stroke();
 //        ctx.font = "bold "+this.size/2+"px arial";
 //        var width = ctx.measureText(this.shapesEaten).width;
 //        var height = ctx.measureText(this.shapesEaten).height;
@@ -735,8 +734,7 @@ function init() {
     }
 
     for(var i=0; i<robot_count; i++){
-        var robot = new
-        Shape(generateX(robot_size),generateY(robot_size),robot_size,getRandomColor(),0,0,false,"robot");
+        var robot = new Shape(generateX(robot_size),generateY(robot_size),robot_size,getRandomColor(),0,0,false,"robot");
         if(robot.x==0){robot.speedx=robot_speed;}
         else{robot.speedx=-robot_speed;}
         if(robot.y==0){robot.speedy=robot_speed;}
@@ -750,7 +748,8 @@ function regenerateShapes(currentTime,numShapesRegen){
     if(shapes.length<numShapesRegen){
         for(var i=0; i<2; i++){
             var size = generateSize();
-            shapes.push(new Shape(generateX(size),generateY(size),size,getRandomColor(),0,0,false,"shape"));    }
+            shapes.push(new Shape(generateX(size),generateY(size),0,getRandomColor(),0,0,false,"shape"));
+            shapes[shapes.length-1].StartAnimation(currentTime,500,size,0);    }
         }
     };
 
@@ -759,12 +758,13 @@ function regenerateShapes(currentTime,numShapesRegen){
 
             var size= getRandomIntInclusive(player.size*.5, player.size*1.5);
 
-            var robot = new Shape(generateX(size),generateY(size),size,getRandomColor(),0,0,false,"robot");
+            var robot = new Shape(generateX(size),generateY(size),0,getRandomColor(),0,0,false,"robot");
             if(robot.x==0){robot.speedx=robot_speed;}
             else{robot.speedx=-robot_speed;}
             if(robot.y==0){robot.speedy=robot_speed;}
             else{robot.speedy=-robot_speed;}
             robots.push(robot);
+            robots[robots.length-1].StartAnimation(currentTime,500,size,0);
         }
     };
 
@@ -853,7 +853,7 @@ function update() {
 
     var currentTime = (new Date()).getTime();
  
-    ctx.fillStyle = 'yellow';
+    ctx.fillStyle = 'black';
     ctx.fillRect(0, 0, GameWorld.Width, GameWorld.Height);
   
    
