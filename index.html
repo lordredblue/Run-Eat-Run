@@ -253,7 +253,7 @@ var AudioPath = function(bs){
 var ratio=16/9; //aspect ratio for canvas size
 var player_size = 30;
 var robot_size = player_size; //fair game
-var robot_speed = 2.5;//main speed magnitude
+var robot_speed = 3;//main speed magnitude
 
 //sum of players and robots should be 4!
 var player_count = 1;
@@ -271,8 +271,6 @@ var shapes = [];
 //Shape sizes
 var maxsize = 20;
 var minsize = 15;
-var maxspeed = 0;
-var minspeed = 0;
 var spinSpeed = 250;
 
 //highscore
@@ -373,7 +371,7 @@ function drawCircle(ctx,x,y,r,color) {
 }
 
 
-Shape.prototype.regShape= function(ctx) {
+Shape.prototype.drawShape= function(ctx) {
     this.points=[];
     
 //    ctx.strokeStyle = "white";
@@ -436,39 +434,6 @@ if (this.sides==0) {
 }
 };  
 
-
-
-////Method for shape to draw itself
-//Shape.prototype.draw = function(ctx) {
-//    //ctx.beginPath();
-//    ctx.fillStyle = this.color;
-//    ctx.strokeStyle = "white";;
-//    ctx.lineWidth = 3;
-//    if(this.type == "square"){
-//        ctx.fillRect (this.x, this.y, this.size, this.size);
-//    }
-//    if(this.type == "circle"){
-//        ctx.beginPath();
-//        ctx.arc(this.getCenter().x,this.getCenter().y,this.size/2, 0, 2 * Math.PI, false);
-//        ctx.fill();
-//    }
-//    if(this.type == "player" || this.type == "robot"){
-//        ctx.beginPath();
-//        ctx.rect(this.x, this.y, this.size, this.size);
-//        ctx.fill();
-//        ctx.stroke();
-//        ctx.closePath();
-//        ctx.beginPath();
-//        ctx.fillStyle = "white";
-//        ctx.font = "bold "+this.size/2+"px arial";
-//        var width = ctx.measureText(this.shapesEaten).width;
-//        var height = ctx.measureText(this.shapesEaten).height;
-//        ctx.fillText(this.shapesEaten, this.getCenter().x-(width/2), this.getCenter().y+(this.size/5));
-//    }
-//    //ctx.closePath();
-//    //console.log("Square number " + this.id + " has been created at: "+this.x+","+ this.y);
-//};
-
 //not updated according to center
 Shape.prototype.drawSpin = function(ctx) {
     //ctx.save();
@@ -506,14 +471,13 @@ Shape.prototype.findNextMove = function(){
     var robot = this;
     robot.targetAcquired = false;
     robot.dangerAcquired = false;
-    var rangeMultiplier = 2.5;
     //var danger = undefined;
 
     //finding target to chase or run away from
     //checking shape locations
     shapes.forEach(function(shape){
          var dist = getDistance(shape.x,shape.y,robot.x,robot.y)-(shape.size/2);
-        if(dist<=robot.size*rangeMultiplier && (dist<closestDist || closestDist==-1)){
+        if(dist<=robot.radarSize && (dist<closestDist || closestDist==-1)){
             closestDist = dist;
             closestX = shape.x;
             closestY = shape.y;
@@ -527,7 +491,7 @@ Shape.prototype.findNextMove = function(){
     robots.forEach(function(robot2){
         if(robot!=robot2){
             var dist = getDistance(robot2.x,robot2.y,robot.x,robot.y);
-            if(dist<=robot.size*rangeMultiplier && (dist<closestDist || closestDist==-1)){
+            if(dist<=robot.radarSize && (dist<closestDist || closestDist==-1)){
                 closestDist = dist;
                 closestX = robot2.x;
                 closestY = robot2.y;
@@ -543,7 +507,7 @@ Shape.prototype.findNextMove = function(){
 });
     //checking player location
     var dist = getDistance(player.x,player.y,robot.x,robot.y);
-    if(dist<=robot.size*rangeMultiplier && (dist<closestDist || closestDist==-1)){
+    if(dist<=robot.radarSize && (dist<closestDist || closestDist==-1)){
         closestDist = dist;
         closestX = player.x;
         closestY = player.y;
@@ -767,7 +731,7 @@ function init() {
 
     for(var i=0; i<numShapes; i++){
         var size = generateSize();
-        shapes.push(new Shape(generateX(size),generateY(size),size,getRandomColor(),getRandomIntInclusive(minspeed,maxspeed),getRandomIntInclusive(minspeed,maxspeed),false,"shape"));
+        shapes.push(new Shape(generateX(size),generateY(size),size,getRandomColor(),0,0,false,"shape"));
     }
 
     for(var i=0; i<robot_count; i++){
@@ -786,7 +750,7 @@ function regenerateShapes(currentTime,numShapesRegen){
     if(shapes.length<numShapesRegen){
         for(var i=0; i<2; i++){
             var size = generateSize();
-            shapes.push(new Shape(generateX(size),generateY(size),size,getRandomColor(),getRandomIntInclusive(minspeed,maxspeed),getRandomIntInclusive(minspeed,maxspeed),false,"shape"));    }
+            shapes.push(new Shape(generateX(size),generateY(size),size,getRandomColor(),0,0,false,"shape"));    }
         }
     };
 
@@ -801,41 +765,6 @@ function regenerateShapes(currentTime,numShapesRegen){
             robots.push(robot);
         }
     };
-
-
-// document.addEventListener("keydown", keyDownHandler, false);
-// document.addEventListener("keyup", keyUpHandler, false);
-
-// function keyDownHandler(e) {
-//     if(e.keyCode == 39) {
-//         rightPressed = true;
-//     }
-//     else if(e.keyCode == 37) {
-//         leftPressed = true;
-//     }
-//     if(e.keyCode == 40) {
-//         upPressed = true;
-//     }
-//     else if(e.keyCode == 38) {
-//         downPressed = true;
-//     }
-// }
-
-// function keyUpHandler(e) {
-//     if(e.keyCode == 39) {
-//         rightPressed = false;
-//     }
-//     else if(e.keyCode == 37) {
-//         leftPressed = false;
-//     }
-
-//     if(e.keyCode == 40) {
-//         upPressed = false;
-//     }
-//     else if(e.keyCode == 38) {
-//         downPressed = false;
-//     }
-// }
 
 function resize_canvas(){
     var oldCanvasWidth = canvas.width;
@@ -924,10 +853,6 @@ function update() {
  
     ctx.fillStyle = 'yellow';
     ctx.fillRect(0, 0, GameWorld.Width, GameWorld.Height);
-
-     shapes.forEach(function(shape){
-        shape.autoMove();
-    });
   
    
     regenerateShapes(currentTime,player.numShapesRegen());
@@ -960,41 +885,25 @@ function update() {
         }
     }
 
-
-
-
-    for(var i=0; i<shapes.length; i++){
-        var shape = shapes[i];
-        shape.DoAnimation(currentTime);
-        if(shape.size==0){
-            shapes.splice(i,1);
-        }
-    }
-
     if (robots.length == 0) {
         endGame(true);
         return;
     }
     
-    
     //dark();
 
     shapes.forEach(function(shape){
-    //shape.draw(ctx);
-    shape.regShape(ctx);
-});
+    shape.drawShape(ctx);
+    });
 
     robots.forEach(function(robot){
         robot.findNextMove();
         robot.drain();
-    //robot.draw(ctx);
-    robot.regShape(ctx);
-});
+    robot.drawShape(ctx);
+    });
 
     player.drain();
-    //player.draw(ctx);
-    player.regShape(ctx);
-    //console.log(player.size)
+    player.drawShape(ctx);
     if(playSound){
         player.updateAudio(player);
         player.checkRadar();
