@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<meta name="HandheldFriendly" content="True">
+	<meta name="MobileOptimized" content="320">	
     <title>Run Eat Run Test</title>
     <style>
         html,body {
@@ -12,7 +15,7 @@
         
         canvas {
             position: absolute;
-            top:0;
+            top:70px;
             bottom: 0;
             left: 0;
             right: 0;
@@ -20,17 +23,17 @@
             border: blue thin solid;
         }
         #hud  {
-            position: absolute;
-            top:;
+            
             background-color: #9AC7F9;
-            opacity: 0.8;
+            opacity: 1;
             border: 4px solid black;
+            align-items: center;
+
         }
     </style>
 
     <audio loop="loop" id= "audio1" autoplay onloadeddata="initialVolume()">
       <source src="runeatrundraft1.mp3"> 
-          Your browser does not support the audio element.
       </audio>
 
 
@@ -42,9 +45,9 @@
 
     <div id="hud">
         <table>
-            <tr><td>Score:</span></td><td id = 'score'>0</td><td><input type="button" value="Play Again" onClick="window.location.reload()"></input></td>
-                <td><input type="button" value="Mute Music" onClick="muteMusicVolume()"></input></td>
-                <td><input type="button" value="Mute Sounds" onClick="muteSoundVolume()"></input></td>
+            <tr><td>Score:</span></td><td id = 'score'>0</td><td>High Score:</span></td><td id = 'highscore'>0</td><td><input type="button" value="Play Again" onClick="window.location.reload()"></input></td>
+                <td><input type="button" value="Music" onClick="muteMusicVolume()"></input></td>
+                <td><input type="button" value="Sounds" onClick="muteSoundVolume()"></input></td>
             </tr>
         </table>
     </div>
@@ -52,8 +55,6 @@
     <script type="text/javascript" src="buffer-loader.js"></script>
     <script>
         "use strict";
-
-
 
 var GameWorld = 
 {
@@ -116,8 +117,28 @@ var GameWorld =
 };
 
 var musicVolume;
-var isSoundNotMuted;
+//audioctx
+var AudioContext = window.AudioContext || window.webkitAudioContext;
+var audioCtx = new AudioContext();
+
+var flee;
+var chase;
+var eat;
+
+var isSoundPlaying;
 var playSound=false;
+
+var bufferLoader = new BufferLoader(
+    audioCtx,
+    [
+    "fleesound.mp3",
+    "chasesound.mp3",
+    "eatsound.mp3",
+    ],
+    finishedLoading
+    );
+
+bufferLoader.load();
 
 function initialVolume() {
     var myAudio = document.getElementById("audio1");  
@@ -135,22 +156,22 @@ function muteMusicVolume() {
   if  (myAudio.volume > 0){
     myAudio.volume = 0;
     localStorage.setItem('musicVolume',0);
-    }
-    else {
-     myAudio.volume = .1;
-     localStorage.setItem('musicVolume',.1);
-    }
+}
+else {
+   myAudio.volume = .1;
+   localStorage.setItem('musicVolume',.1);
+}
 };
 
- function muteSoundVolume() {
+function muteSoundVolume() {
     if(playSound===false)
     {
         playSound=true;
-        localStorage.setItem('isSoundNotMuted',true);
+        localStorage.setItem('isSoundPlaying',true);
     }
     else{
         playSound=false;
-        localStorage.setItem('isSoundNotMuted',false);
+        localStorage.setItem('isSoundPlaying',false);
         flee.gainNode.gain.value=0;
         chase.gainNode.gain.value=0;
         eat.gainNode.gain.value=0;
@@ -164,64 +185,35 @@ canvas.style.background = 'white';
 canvas.addEventListener('mousemove', function(event){
 	var m = GameWorld.MapMouseFromCanvas(event.clientX, event.clientY);
 
-
     mousex = m.x;
     mousey = m.y;
 });
 var ctx = canvas.getContext("2d");
 
-//audioctx
-var AudioContext = window.AudioContext || window.webkitAudioContext;
-var audioCtx = new AudioContext();
-
-var fleesound;
-var chasesound;
-var eatsound;
-
-var flee;
-var chase;
-var eat;
-var isAudioLoaded=false;
-
-var bufferLoader = new BufferLoader(
-    audioCtx,
-    [
-    "fleesound.mp3",
-    "chasesound.mp3",
-    "eatsound.mp3",
-    ],
-    finishedLoading
-    );
-
-//bufferLoader.load();
-
-
-
 function finishedLoading(bufferList) {
     // Create three sources and buffers
-    fleesound = audioCtx.createBufferSource();
-    chasesound = audioCtx.createBufferSource();
-    eatsound = audioCtx.createBufferSource();
-    fleesound.buffer = bufferList[0];
-    chasesound.buffer = bufferList[1];
-    eatsound.buffer = bufferList[2];
-    flee= new AudioPath(fleesound);
-    chase=new AudioPath(chasesound);
-    eat=new AudioPath(eatsound);
+    var fleesoundsource = audioCtx.createBufferSource();
+    var chasesoundsource = audioCtx.createBufferSource();
+    var eatsoundsource = audioCtx.createBufferSource();
+    fleesoundsource.buffer = bufferList[0];
+    chasesoundsource.buffer = bufferList[1];
+    eatsoundsource.buffer = bufferList[2];
+    flee= new AudioPath(fleesoundsource);
+    chase=new AudioPath(chasesoundsource);
+    eat=new AudioPath(eatsoundsource);
     flee.gainNode.gain.value=0;
     chase.gainNode.gain.value=0;
     eat.gainNode.gain.value=0;
 
-    if(localStorage.getItem('isSoundNotMuted')){
-        playSound=('true' ===localStorage.getItem('isSoundNotMuted'));
+    if(localStorage.getItem('isSoundPlaying')){
+        playSound=('true' ===localStorage.getItem('isSoundPlaying'));
     }
     else
     {
         playSound=true;
-        localStorage.setItem('isSoundNotMuted',true);
+        localStorage.setItem('isSoundPlaying',true);
     }
 };
-
 
 var AudioPath = function(bs){
 
@@ -258,7 +250,6 @@ var AudioPath = function(bs){
   }
 };
 
-var initradarsize=100;
 var ratio=16/9; //aspect ratio for canvas size
 var player_size = 30;
 var robot_size = player_size; //fair game
@@ -267,7 +258,7 @@ var robot_speed = 2.5;//main speed magnitude
 //sum of players and robots should be 4!
 var player_count = 1;
 var robot_count = 5;
-        
+
 var maxNumShapes=20;
 var minNumShapes=15;
 var numShapes = getRandomIntInclusive(minNumShapes,maxNumShapes);
@@ -280,11 +271,12 @@ var shapes = [];
 //Shape sizes
 var maxsize = 20;
 var minsize = 15;
-var maxfreq=300;
-var minfreq=2000;
 var maxspeed = 0;
 var minspeed = 0;
 var spinSpeed = 250;
+
+//highscore
+var highscore;
 
 function getRandomColor() {
     var letters = '0123456789ABCDEF';
@@ -299,6 +291,29 @@ function getRandomColor() {
 function updateScore(integer){
     document.getElementById("score").innerHTML = integer;
 }
+
+function updateHighScore(integer){
+
+    if(localStorage.getItem('highscore'))
+    {
+        var oldhighscore=parseInt(localStorage.getItem('highscore'));
+        if (oldhighscore<integer)
+        {
+            localStorage.setItem('highscore',integer);
+            document.getElementById("highscore").innerHTML = integer;
+        }
+        else{
+            document.getElementById("highscore").innerHTML = oldhighscore;
+        }
+
+    }
+    else {
+
+        highscore=integer;
+        localStorage.setItem('highscore',integer);
+        document.getElementById("highscore").innerHTML = integer;
+    }
+};
 
 var Point = function (x,y) {
     this.x=x;
@@ -328,7 +343,7 @@ var Shape = function(x,y,size,color,speedx,speedy,isPlayer,type){
         this.sides=0;
     }
 
-    this.radarSize=1;
+    this.radarSize=this.size*3;
 
     if(this.isPlayer==true){
         this.listener = audioCtx.listener;
@@ -371,12 +386,12 @@ if (this.sides==0) {
     if (this.sides==3) {
         var offset=Math.PI/6
     } else if (this.sides==4) {
-     var offset=Math.PI/4
- } else if (this.sides==5) {
-     var offset=3*Math.PI/2
- } else if (this.sides==6) {
-     var offset=Math.PI
- }
+       var offset=Math.PI/4
+   } else if (this.sides==5) {
+       var offset=3*Math.PI/2
+   } else if (this.sides==6) {
+       var offset=Math.PI
+   }
 
         //    x = cx + r * cos(a)
         //    y = cy + r * sin(a)
@@ -470,16 +485,16 @@ Shape.prototype.updateAudio = function(player) {
 
     if(this.isPlayer){
 
-       this.listener.setPosition(this.x,this.y,50);
+     this.listener.setPosition(this.x,this.y,50);
 
-   }
+ }
 };
 
 Shape.prototype.changeSize = function(ratio) {
     this.size*=ratio;
 };
-        
-        
+
+
 Shape.prototype.numShapesRegen = function(){
     return 20*numShapes/this.size;
 };  
@@ -599,8 +614,8 @@ Shape.prototype.checkRadar =function() {
         || getDistance(shape1.x,shape1.y,shape2.x,shape2.y)<=(shape1.radarSize+shape2.size)/2)
     {
 
-       if(shape1.size<shape2.size)
-       {
+     if(shape1.size<shape2.size)
+     {
         flee.gainNode.gain.value=1;
         flee.panner.setPosition(shape2.x,shape2.y,50);
         break;
@@ -741,8 +756,8 @@ Shape.prototype.StopAnimation = function() {
 
 Shape.prototype.drain = function(){
     if (this.size>player_size) {
-    var drainFactor = this.size*0.001;
-    this.size-= drainFactor;
+        var drainFactor = this.size*0.001;
+        this.size-= drainFactor;
     }
 };
 
@@ -771,45 +786,56 @@ function regenerateShapes(currentTime,numShapesRegen){
     if(shapes.length<numShapesRegen){
         for(var i=0; i<2; i++){
             var size = generateSize();
-            shapes.push(new Shape(generateX(size),generateY(size),size,getRandomColor(),getRandomIntInclusive(minspeed,maxspeed),getRandomIntInclusive(minspeed,maxspeed),false,"shape"));
-            //shapes[shapes.length-1].StartAnimation(currentTime,500,size,0);
+            shapes.push(new Shape(generateX(size),generateY(size),size,getRandomColor(),getRandomIntInclusive(minspeed,maxspeed),getRandomIntInclusive(minspeed,maxspeed),false,"shape"));    }
         }
-    }
-};
+    };
 
-document.addEventListener("keydown", keyDownHandler, false);
-document.addEventListener("keyup", keyUpHandler, false);
+    function regenerateRobots(currentTime){
+        if(robots.length<robot_count-1){
+            var robot = new
+            Shape(generateX(robot_size),generateY(robot_size),robot_size,getRandomColor(),0,0,false,"robot");
+            if(robot.x==0){robot.speedx=robot_speed;}
+            else{robot.speedx=-robot_speed;}
+            if(robot.y==0){robot.speedy=robot_speed;}
+            else{robot.speedy=-robot_speed;}
+            robots.push(robot);
+        }
+    };
 
-function keyDownHandler(e) {
-    if(e.keyCode == 39) {
-        rightPressed = true;
-    }
-    else if(e.keyCode == 37) {
-        leftPressed = true;
-    }
-    if(e.keyCode == 40) {
-        upPressed = true;
-    }
-    else if(e.keyCode == 38) {
-        downPressed = true;
-    }
-}
 
-function keyUpHandler(e) {
-    if(e.keyCode == 39) {
-        rightPressed = false;
-    }
-    else if(e.keyCode == 37) {
-        leftPressed = false;
-    }
+// document.addEventListener("keydown", keyDownHandler, false);
+// document.addEventListener("keyup", keyUpHandler, false);
 
-    if(e.keyCode == 40) {
-        upPressed = false;
-    }
-    else if(e.keyCode == 38) {
-        downPressed = false;
-    }
-}
+// function keyDownHandler(e) {
+//     if(e.keyCode == 39) {
+//         rightPressed = true;
+//     }
+//     else if(e.keyCode == 37) {
+//         leftPressed = true;
+//     }
+//     if(e.keyCode == 40) {
+//         upPressed = true;
+//     }
+//     else if(e.keyCode == 38) {
+//         downPressed = true;
+//     }
+// }
+
+// function keyUpHandler(e) {
+//     if(e.keyCode == 39) {
+//         rightPressed = false;
+//     }
+//     else if(e.keyCode == 37) {
+//         leftPressed = false;
+//     }
+
+//     if(e.keyCode == 40) {
+//         upPressed = false;
+//     }
+//     else if(e.keyCode == 38) {
+//         downPressed = false;
+//     }
+// }
 
 function resize_canvas(){
     var oldCanvasWidth = canvas.width;
@@ -905,6 +931,7 @@ function update() {
   
    
     regenerateShapes(currentTime,player.numShapesRegen());
+    regenerateRobots(currentTime);
 
 
     player.checkCollisions(currentTime);
@@ -987,6 +1014,7 @@ function update() {
         player.y=(mousey-player.y)/speedFactor+player.y;
     }
     updateScore(player.shapesEaten);
+    updateHighScore(player.shapesEaten);
     var speed = dist/50;
 
     window.requestAnimationFrame(update);
@@ -999,14 +1027,16 @@ function endGame(win){
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.font = "30px Arial";
     ctx.textBaseline = 'middle';
+    ctx.textAlign="center"; 
     //ctx.textAlign = 'center';
     ctx.fillStyle="#FFFFFF";
     if (win){
         //ctx.fillText("game over",10,50);
-        ctx.fillText("YOU WON!",(canvas.width/2-canvas.width/20),(canvas.height/2-canvas.height/40));
+        ctx.fillText("YOU WON!",(canvas.width/2),(canvas.height/2-canvas.height/40));
     } else {
         //ctx.fillText("game over",10,50);
-        ctx.fillText("YOU LOST!",(canvas.width/2-canvas.width/20),(canvas.height/2-canvas.height/40));
+        ctx.fillText("YOU WERE EATEN!",(canvas.width/2),(canvas.height/2-canvas.height/40));
+        ctx.fillText("Your Score=  "+player.shapesEaten,(canvas.width/2),(2*canvas.height/3));
     }
     shapes.forEach(function(shape){
         if (shape.source!=undefined) {
