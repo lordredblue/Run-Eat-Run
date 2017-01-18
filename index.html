@@ -793,7 +793,7 @@ function regenerateShapes(currentTime,numShapesRegen){
     function regenerateRobots(currentTime){
         if(robots.length<robot_count-1){
 
-            var size= getRandomIntInclusive(player.size*.5, player.size.*1.5);
+            var size= getRandomIntInclusive(player.size*.5, player.size*1.5);
 
             var robot = new Shape(generateX(size),generateY(size),size,getRandomColor(),0,0,false,"robot");
             if(robot.x==0){robot.speedx=robot_speed;}
