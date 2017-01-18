@@ -96,8 +96,8 @@ function muteMusicVolume() {
     localStorage.setItem('musicVolume',0);
 }
 else {
- myAudio.volume = .1;
- localStorage.setItem('musicVolume',.1);
+   myAudio.volume = .1;
+   localStorage.setItem('musicVolume',.1);
 }
 };
 
@@ -118,9 +118,9 @@ function muteSoundVolume() {
 
 function finishedLoading(bufferList) {
     // Create three sources and buffers
-     var fleesoundsource = audioCtx.createBufferSource();
-     var chasesoundsource = audioCtx.createBufferSource();
-     var eatsoundsource = audioCtx.createBufferSource();
+    var fleesoundsource = audioCtx.createBufferSource();
+    var chasesoundsource = audioCtx.createBufferSource();
+    var eatsoundsource = audioCtx.createBufferSource();
     fleesoundsource.buffer = bufferList[0];
     chasesoundsource.buffer = bufferList[1];
     eatsoundsource.buffer = bufferList[2];
@@ -194,7 +194,7 @@ var robot_speed = 2.5;//main speed magnitude
 //sum of players and robots should be 4!
 var player_count = 1;
 var robot_count = 5;
-        
+
 var maxNumShapes=20;
 var minNumShapes=15;
 var numShapes = getRandomIntInclusive(minNumShapes,maxNumShapes);
@@ -296,12 +296,12 @@ if (this.sides==0) {
     if (this.sides==3) {
         var offset=Math.PI/6
     } else if (this.sides==4) {
-     var offset=Math.PI/4
- } else if (this.sides==5) {
-     var offset=3*Math.PI/2
- } else if (this.sides==6) {
-     var offset=Math.PI
- }
+       var offset=Math.PI/4
+   } else if (this.sides==5) {
+       var offset=3*Math.PI/2
+   } else if (this.sides==6) {
+       var offset=Math.PI
+   }
 
         //    x = cx + r * cos(a)
         //    y = cy + r * sin(a)
@@ -395,16 +395,16 @@ Shape.prototype.updateAudio = function(player) {
 
     if(this.isPlayer){
 
-       this.listener.setPosition(this.x,this.y,50);
+     this.listener.setPosition(this.x,this.y,50);
 
-   }
+ }
 };
 
 Shape.prototype.changeSize = function(ratio) {
     this.size*=ratio;
 };
-        
-        
+
+
 Shape.prototype.numShapesRegen = function(){
     return 20*numShapes/this.size;
 };  
@@ -524,8 +524,8 @@ Shape.prototype.checkRadar =function() {
         || getDistance(shape1.x,shape1.y,shape2.x,shape2.y)<=(shape1.radarSize+shape2.size)/2)
     {
 
-       if(shape1.size<shape2.size)
-       {
+     if(shape1.size<shape2.size)
+     {
         flee.gainNode.gain.value=1;
         flee.panner.setPosition(shape2.x,shape2.y,50);
         break;
@@ -666,8 +666,8 @@ Shape.prototype.StopAnimation = function() {
 
 Shape.prototype.drain = function(){
     if (this.size>player_size) {
-    var drainFactor = this.size*0.001;
-    this.size-= drainFactor;
+        var drainFactor = this.size*0.001;
+        this.size-= drainFactor;
     }
 };
 
@@ -693,11 +693,22 @@ function regenerateShapes(currentTime,numShapesRegen){
     if(shapes.length<numShapesRegen){
         for(var i=0; i<2; i++){
             var size = generateSize();
-            shapes.push(new Shape(generateX(size),generateY(size),size,getRandomColor(),getRandomIntInclusive(minspeed,maxspeed),getRandomIntInclusive(minspeed,maxspeed),false,"shape"));
-            //shapes[shapes.length-1].StartAnimation(currentTime,500,size,0);
+            shapes.push(new Shape(generateX(size),generateY(size),size,getRandomColor(),getRandomIntInclusive(minspeed,maxspeed),getRandomIntInclusive(minspeed,maxspeed),false,"shape"));    }
         }
-    }
-};
+    };
+
+    function regenerateRobots(currentTime){
+        if(robots.length<robot_count-1){
+            var robot = new
+            Shape(generateX(robot_size),generateY(robot_size),robot_size,getRandomColor(),0,0,false,"robot");
+            if(robot.x==0){robot.speedx=robot_speed;}
+            else{robot.speedx=-robot_speed;}
+            if(robot.y==0){robot.speedy=robot_speed;}
+            else{robot.speedy=-robot_speed;}
+            robots.push(robot);
+        }
+    };
+
 
 // document.addEventListener("keydown", keyDownHandler, false);
 // document.addEventListener("keyup", keyUpHandler, false);
@@ -815,6 +826,7 @@ function update() {
     
     resize_canvas(); 
     regenerateShapes(currentTime,player.numShapesRegen());
+    regenerateRobots(currentTime);
 
     player.checkCollisions(currentTime);
     player.DoAnimation(currentTime);
