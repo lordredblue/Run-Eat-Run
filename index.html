@@ -259,8 +259,8 @@ var robot_speed = 2.5;//main speed magnitude
 var player_count = 1;
 var robot_count = 5;
 
-var maxNumShapes=20;
-var minNumShapes=15;
+var maxNumShapes=90;
+var minNumShapes=60;
 var numShapes = getRandomIntInclusive(minNumShapes,maxNumShapes);
 
 var player = undefined;
@@ -512,7 +512,7 @@ Shape.prototype.findNextMove = function(){
     //finding target to chase or run away from
     //checking shape locations
     shapes.forEach(function(shape){
-        var dist = getDistance(shape.x,shape.y,robot.x,robot.y);
+         var dist = getDistance(shape.x,shape.y,robot.x,robot.y)-(shape.size/2);
         if(dist<=robot.size*rangeMultiplier && (dist<closestDist || closestDist==-1)){
             closestDist = dist;
             closestX = shape.x;
@@ -793,7 +793,7 @@ function regenerateShapes(currentTime,numShapesRegen){
     function regenerateRobots(currentTime){
         if(robots.length<robot_count-1){
             var robot = new
-            Shape(generateX(robot_size),generateY(robot_size),robot_size,getRandomColor(),0,0,false,"robot");
+            Shape(generateX(player.size),generateY(player.size),player.size,getRandomColor(),0,0,false,"robot");
             if(robot.x==0){robot.speedx=robot_speed;}
             else{robot.speedx=-robot_speed;}
             if(robot.y==0){robot.speedy=robot_speed;}
