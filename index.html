@@ -18,7 +18,13 @@
             right: 0;
             margin:auto;
         }
-        #hud  { position: absolute; top:; background-color: yellow; opacity: 0.8; border: 4px solid black; }
+        #hud  {
+            position: absolute;
+            top:;
+            background-color: #9AC7F9;
+            opacity: 0.8;
+            border: 4px solid black;
+        }
     </style>
 
     <audio loop="loop" id= "audio1" autoplay onloadeddata="initialVolume()">
@@ -46,32 +52,32 @@
     <script>
         "use strict";
 
- var musicVolume;
-        var isSoundNotMuted;
-        var playSound=false;
+var musicVolume;
+var isSoundNotMuted;
+var playSound=false;
 
-        function initialVolume() {
-            var myAudio = document.getElementById("audio1");  
-            if(localStorage.getItem('musicVolume')){   
-                myAudio.volume = localStorage.getItem('musicVolume'); 
-            }
-            else {
-                myAudio.volume = 0.1; 
-                localStorage.setItem('musicVolume',.1);
-            }
-        };
+function initialVolume() {
+    var myAudio = document.getElementById("audio1");  
+    if(localStorage.getItem('musicVolume')){   
+        myAudio.volume = localStorage.getItem('musicVolume'); 
+    }
+    else {
+        myAudio.volume = 0.1; 
+        localStorage.setItem('musicVolume',.1);
+    }
+};
 
-        function muteMusicVolume() {
-          var myAudio = document.getElementById("audio1"); 
-          if  (myAudio.volume > 0){
-            myAudio.volume = 0;
-            localStorage.setItem('musicVolume',0);
-        }
-        else {
-         myAudio.volume = .1;
-         localStorage.setItem('musicVolume',.1);
-     }
- };
+function muteMusicVolume() {
+  var myAudio = document.getElementById("audio1"); 
+  if  (myAudio.volume > 0){
+    myAudio.volume = 0;
+    localStorage.setItem('musicVolume',0);
+    }
+    else {
+     myAudio.volume = .1;
+     localStorage.setItem('musicVolume',.1);
+    }
+};
 
  function muteSoundVolume() {
     if(playSound===false)
@@ -195,18 +201,8 @@ var robot_speed = 2.5;//main speed magnitude
 
 //sum of players and robots should be 4!
 var player_count = 1;
-var robot_count = 3;
-var main_color_container = []; //colors for assigning to players and robots
-main_color_container.push("blue");
-main_color_container.push("red");
-main_color_container.push("yellow");
-main_color_container.push("green");
-var main_position_container = [];
-main_position_container.push({x:0,y:0});
-main_position_container.push({x:(canvas.width)-robot_size,y:canvas.height-robot_size});
-main_position_container.push({x:0,y:canvas.height-robot_size});
-main_position_container.push({x:canvas.width-robot_size,y:0});
-
+var robot_count = 5;
+        
 var maxNumShapes=20;
 var minNumShapes=15;
 var numShapes = getRandomIntInclusive(minNumShapes,maxNumShapes);
@@ -215,11 +211,6 @@ var player = undefined;
 var robots = [];
 var shapes = [];
 
-//arrow keys
-var rightPressed = false;
-var leftPressed = false;
-var upPressed = false;
-var downPressed = false;
 
 //Shape sizes
 var maxsize = 20;
@@ -684,8 +675,10 @@ Shape.prototype.StopAnimation = function() {
 };
 
 Shape.prototype.drain = function(){
+    if (this.size>player_size) {
     var drainFactor = this.size*0.001;
     this.size-= drainFactor;
+    }
 };
 
 function init() {
@@ -695,17 +688,15 @@ function init() {
     }
 
     for(var i=0; i<robot_count; i++){
-        var position = main_position_container.pop();
-        var robot = new Shape(position.x,position.y,robot_size,main_color_container.pop(),0,0,false,"robot");
+        var robot = new
+        Shape(generateX(robot_size),generateY(robot_size),robot_size,getRandomColor(),0,0,false,"robot");
         if(robot.x==0){robot.speedx=robot_speed;}
         else{robot.speedx=-robot_speed;}
         if(robot.y==0){robot.speedy=robot_speed;}
         else{robot.speedy=-robot_speed;}
         robots.push(robot);
     }
-
-    var position = main_position_container.pop();
-    player = new Shape(position.x,position.y,player_size,main_color_container.pop(),0,0,true,"player");
+    player = new Shape(generateX(player_size),generateY(player_size),player_size,getRandomColor(),0,0,true,"player");
 };
 
 function regenerateShapes(currentTime,numShapesRegen){
@@ -916,21 +907,6 @@ function update() {
     }
     updateScore(player.shapesEaten);
     var speed = dist/50;
-
-    //arrowkeys
-    if(rightPressed && x < canvas.width-(size*2)) {
-        player.x += speed;
-    }
-    else if(leftPressed && x > 0) {
-        player.x -= speed;
-    }
-
-    if(upPressed && y < canvas.height-(size*2)) {
-        player.y += speed;
-    }
-    else if(downPressed && y > 0) {
-        player.y -= speed;
-    }
 
     window.requestAnimationFrame(update);
 }
