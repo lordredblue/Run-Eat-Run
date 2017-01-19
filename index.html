@@ -348,7 +348,6 @@ var Shape = function(x,y,size,color,type){
     this.size = size;
     this.color = color;
     this.type = type;
-    this.shapesEaten = 0;
     this.points = []; 
     
     var minSides=2;
@@ -440,9 +439,13 @@ Shape.prototype.checkCollision = function(currentTime,shape2){
     if (getDistance(shape1.x,shape1.y,shape2.x,shape2.y)<=(shape1.size+shape2.size)/2 && shape2.inCollision==undefined){
         if (shape1.size>shape2.size){
             shape1.StartAnimation(currentTime, 500, shape1.size + shape2.size/3,1);
-            shape1.shapesEaten+=1;
-            shape2.speedx=0;
-            shape2.speedy=0;
+            if(shape1.type=="player"){
+                shape1.player.shapesEaten+=1;
+            }
+            if(shape2.type=="robot"){
+            shape2.robot.speedx=0;
+            shape2.robot.speedy=0;
+            }
             shape2.inCollision = true;
             shape2.StartAnimation(currentTime, 500, 0,0);
         }
@@ -527,11 +530,12 @@ Shape.prototype.drain = function(){
 };
 
 var Robot = function(x,y,size,color,speedx,speedy){
-    this.shape = new Shape(x,y,size,color,"robot")
+    this.shape = new Shape(x,y,size,color,"robot");
+    this.shape.robot = this;
     this.speedx = speedx;
     this.speedy = speedy;
     this.id = ++robot_id_counter;
-    console.log("Robot "+this.id+" created")
+    console.log("Robot "+this.id+" created");
 };
 
 Robot.prototype.autoMove = function(){
@@ -656,7 +660,9 @@ Robot.prototype.findNextMove = function(){
 
 var Player = function(x,y,size,color){
     this.shape = new Shape(x,y,size,color,"player");
-    this.radarSize=this.shape.size*3;
+    this.shape.player = this;
+    this.shapesEaten = 0;
+    this.radarSize=this.shape.size*5;
     this.listener = audioCtx.listener;
 
     if(this.listener.forwardX) {
@@ -720,7 +726,7 @@ Player.prototype.drawRadar= function(ctx){
     var radarRatio=(sec%5)/10;
 
 
-    this.radarSize=this.shape.size*3*(1+radarRatio);
+    this.radarSize=this.shape.size*5*(1+radarRatio);
     ctx.beginPath()
     ctx.arc(this.shape.x,this.shape.y,this.radarSize,0,Math.PI*2,true);
     ctx.strokeStyle=this.shape.color;
@@ -856,7 +862,7 @@ function update() {
 
     var currentTime = (new Date()).getTime();
  
-    ctx.fillStyle = 'black';
+    ctx.fillStyle = 'white';
     ctx.fillRect(0, 0, GameWorld.Width, GameWorld.Height);
   
    
@@ -867,7 +873,7 @@ function update() {
     player.shape.checkCollisions(currentTime);
     player.shape.DoAnimation(currentTime);
     if(player.shape.size==0){
-        endGame(false);
+        endGame();
         return;
     }
     
@@ -889,13 +895,8 @@ function update() {
             shapes.splice(i,1);
         }
     }
-
-    if (robots.length == 0) {
-        endGame(true);
-        return;
-    }
     
-    //dark();
+    dark();
 
     shapes.forEach(function(shape){
     shape.drawShape(ctx);
@@ -927,8 +928,8 @@ function update() {
         player.shape.x=(mousex-player.shape.x)/speedFactor+player.shape.x;
         player.shape.y=(mousey-player.shape.y)/speedFactor+player.shape.y;
     }
-    updateScore(player.shape.shapesEaten);
-    updateHighScore(player.shape.shapesEaten);
+    updateScore(player.shapesEaten);
+    updateHighScore(player.shapesEaten);
     var speed = dist/50;
 
     window.requestAnimationFrame(update);
@@ -936,7 +937,7 @@ function update() {
 }
 
 
-function endGame(win){
+function endGame(){
     //ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.resetTransform();
     ctx.fillStyle="black";
@@ -946,14 +947,10 @@ function endGame(win){
     ctx.textAlign="center"; 
     //ctx.textAlign = 'center';
     ctx.fillStyle="#FFFFFF";
-    if (win){
-        //ctx.fillText("game over",10,50);
-        ctx.fillText("YOU WON!",(canvas.width/2),(canvas.height/2-canvas.height/40));
-    } else {
-        //ctx.fillText("game over",10,50);
-        ctx.fillText("YOU WERE EATEN!",(canvas.width/2),(canvas.height/2-canvas.height/20));
-        ctx.fillText("Your Score = "+player.shape.shapesEaten,(canvas.width/2),(canvas.height/2));
-    }
+    //ctx.fillText("game over",10,50);
+    ctx.fillText("YOU WERE EATEN!",(canvas.width/2),(canvas.height/2-canvas.height/20));
+    ctx.fillText("Your Score = "+player.shapesEaten,(canvas.width/2),(canvas.height/2));
+
     shapes.forEach(function(shape){
         if (shape.source!=undefined) {
             shape.source.stop();
@@ -971,14 +968,14 @@ function getRandomIntInclusive(min, max) {
 }
 
 function dark() {
-    ctx.resetTransform();
+    //ctx.resetTransform();
     ctx.fillStyle="#000000"
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillRect(0, 0, GameWorld.Width, GameWorld.Height);
     ctx.beginPath();
     ctx.arc(player.shape.x, player.shape.y, player.radarSize, 0, Math.PI*2);
     ctx.closePath();
     ctx.clip();
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, GameWorld.Width, GameWorld.Height);
 }
 
 var startTime = (new Date()).getTime();
