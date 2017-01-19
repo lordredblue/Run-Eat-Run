@@ -48,6 +48,21 @@
             <tr><td>Score:</span></td><td id = 'score'>0</td><td>High Score:</span></td><td id = 'highscore'>0</td><td><input type="button" value="Play Again" onClick="window.location.reload()"></input></td>
                 <td><input type="button" value="Pause Music" onClick="muteMusicVolume()" id="musicButton"></input></td>
                 <td><input type="button" value="Pause Sounds" onClick="muteSoundVolume()" id="soundButton"></input></td>
+                <script type="text/javascript">
+                    var myAudio = document.getElementById("audio1");  
+                        if(localStorage.getItem('musicVolume')){   
+                            if(localStorage.getItem('musicVolume')==='0'){
+                                var button = document.getElementById("musicButton");
+                                button.value="Play Music";
+                            }
+                        }
+                        if(localStorage.getItem('isSoundPlaying')){   
+                            if(localStorage.getItem('isSoundPlaying')==='false'){
+                                var button = document.getElementById("soundButton");
+                                button.value="Play Sounds";
+                            }
+                        }
+                </script>
             </tr>
         </table>
     </div>
@@ -922,9 +937,10 @@ function update() {
 
 
 function endGame(win){
-    canvas.style.background = 'black';
     //ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.resetTransform();
+    ctx.fillStyle="black";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
     ctx.font = "30px Arial";
     ctx.textBaseline = 'middle';
     ctx.textAlign="center"; 
@@ -955,7 +971,7 @@ function getRandomIntInclusive(min, max) {
 }
 
 function dark() {
-
+    ctx.resetTransform();
     ctx.fillStyle="#000000"
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.beginPath();
