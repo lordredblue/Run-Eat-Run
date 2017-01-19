@@ -274,7 +274,7 @@ var AudioPath = function(bs){
 var ratio=16/9; //aspect ratio for canvas size
 var player_size = 30;
 var robot_size = player_size; //fair game
-var robot_speed = 5;//main speed magnitude\
+var robot_speed = 4;//main speed magnitude\
 var min_drain_size = player_size;
 
 var robot_count = 5;
@@ -417,9 +417,12 @@ if (this.sides==0) {
         
     }
     if(this.type == "player" || this.type == "robot"){
-        // ctx.lineWidth = this.size/15;
-        // ctx.strokeStyle = "black";
-        // ctx.stroke();
+        ctx.lineWidth = this.size/20;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size/2.5, 0, 2*Math.PI);
+        ctx.strokeStyle="white";
+        ctx.stroke();
+        ctx.closePath();
     }
 };  
 
@@ -580,7 +583,7 @@ Robot.prototype.findNextMove = function(){
     var robot = this;
     robot.targetAcquired = false;
     robot.dangerAcquired = false;
-    robot.radarSize = robot.shape.size*3;
+    robot.radarSize = robot.shape.size*4;
     //var danger = undefined;
 
     //finding target to chase or run away from
@@ -662,7 +665,7 @@ var Player = function(x,y,size,color){
     this.shape = new Shape(x,y,size,color,"player");
     this.shape.player = this;
     this.shapesEaten = 0;
-    this.radarSize=this.shape.size*5;
+    this.radarSize=this.shape.size*4;
     this.listener = audioCtx.listener;
 
     if(this.listener.forwardX) {
@@ -726,7 +729,7 @@ Player.prototype.drawRadar= function(ctx){
     var radarRatio=(sec%5)/10;
 
 
-    this.radarSize=this.shape.size*5*(1+radarRatio);
+    this.radarSize=this.shape.size*4*(1+radarRatio);
     ctx.beginPath()
     ctx.arc(this.shape.x,this.shape.y,this.radarSize,0,Math.PI*2,true);
     ctx.strokeStyle=this.shape.color;
