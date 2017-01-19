@@ -46,8 +46,8 @@
     <div id="hud">
         <table>
             <tr><td>Score:</span></td><td id = 'score'>0</td><td>High Score:</span></td><td id = 'highscore'>0</td><td><input type="button" value="Play Again" onClick="window.location.reload()"></input></td>
-                <td><input type="button" value="Music" onClick="muteMusicVolume()"></input></td>
-                <td><input type="button" value="Sounds" onClick="muteSoundVolume()"></input></td>
+                <td><input type="button" value="Pause Music" onClick="muteMusicVolume()" id="musicButton"></input></td>
+                <td><input type="button" value="Pause Sounds" onClick="muteSoundVolume()" id="soundButton"></input></td>
             </tr>
         </table>
     </div>
@@ -153,21 +153,26 @@ function initialVolume() {
 
 function muteMusicVolume() {
   var myAudio = document.getElementById("audio1"); 
+  var button = document.getElementById("musicButton");
   if  (myAudio.volume > 0){
     myAudio.volume = 0;
     localStorage.setItem('musicVolume',0);
+    button.value = "Play Music";
 }
 else {
    myAudio.volume = .1;
    localStorage.setItem('musicVolume',.1);
+   button.value = "Pause Music";
 }
 };
 
 function muteSoundVolume() {
+    var button = document.getElementById("soundButton");
     if(playSound===false)
     {
         playSound=true;
         localStorage.setItem('isSoundPlaying',true);
+        button.value = "Pause Sounds";
     }
     else{
         playSound=false;
@@ -175,6 +180,7 @@ function muteSoundVolume() {
         flee.gainNode.gain.value=0;
         chase.gainNode.gain.value=0;
         eat.gainNode.gain.value=0;
+        button.value = "Play Sounds";
     }
 };
 
