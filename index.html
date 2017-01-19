@@ -262,7 +262,6 @@ var robot_size = player_size; //fair game
 var robot_speed = 5;//main speed magnitude\
 var min_drain_size = player_size;
 
-var player_count = 1;
 var robot_count = 5;
 
 var maxNumShapes=90;
@@ -334,7 +333,6 @@ var Shape = function(x,y,size,color,type){
     this.color = color;
     this.type = type;
     this.shapesEaten = 0;
-    
     this.points = []; 
     
     var minSides=2;
@@ -344,26 +342,6 @@ var Shape = function(x,y,size,color,type){
     if (this.sides==2) {
         this.sides=0;
     }
-
-    this.radarSize=this.size*3;
-
-    if(this.type=="player"){
-        this.listener = audioCtx.listener;
-
-        if(this.listener.forwardX) {
-          this.listener.forwardX.value = 0;
-          this.listener.forwardY.value = 0;
-          this.listener.forwardZ.value = -1;
-          this.listener.upX.value = 0;
-          this.listener.upY.value = 1;
-      // this.listener.upZ.value = 0;
-  } else {
-      this.listener.setOrientation(0,0,-1,0,1,0);
-  }
-  this.listener.positionX.value = this.x;
-  this.listener.positionY.value = this.y;
-  this.listener.positionZ.value = 50;
-}
 };
 
 function drawCircle(ctx,x,y,r,color) {
@@ -427,11 +405,7 @@ if (this.sides==0) {
         // ctx.lineWidth = this.size/15;
         // ctx.strokeStyle = "black";
         // ctx.stroke();
-//        ctx.font = "bold "+this.size/2+"px arial";
-//        var width = ctx.measureText(this.shapesEaten).width;
-//        var height = ctx.measureText(this.shapesEaten).height;
-//        ctx.fillText(this.shapesEaten, this.getCenter().x-(width/2), this.getCenter().y+(this.size/5));
-}
+    }
 };  
 
 //not updated according to center
@@ -443,21 +417,7 @@ Shape.prototype.drawSpin = function(ctx) {
     ctx.rotate( ((Math.PI)/spinSpeed)*time.getMilliseconds());
     ctx.fillRect (-this.size/2, -this.size/2, this.size, this.size);
     //ctx.restore();
-};
-
-Shape.prototype.updateAudio = function(player) {
-    //update audiolocation
-
-    if(this.type=="player"){
-
-     this.listener.setPosition(this.x,this.y,50);
-
- }
-};
-
-Shape.prototype.numShapesRegen = function(){
-    return 20*numShapes/this.size;
-};  
+}; 
 
 Shape.prototype.checkCollision = function(currentTime,shape2){
     var shape1 = this;
@@ -474,38 +434,6 @@ Shape.prototype.checkCollision = function(currentTime,shape2){
 
 };
 
-
-Shape.prototype.checkRadar =function() {
-  //audio on/off for radar
-  var shape1=this;
-  for(var i=0;i<robots.length;i++) {
-    var robot=robots[i];
-
-    if(getDistance(shape1.x,shape1.y,robot.shape.x,robot.shape.y)<=shape1.radarSize+robot.shape.size/2
-        || getDistance(shape1.x,shape1.y,robot.shape.x,robot.shape.y)<=(shape1.radarSize+robot.shape.size)/2)
-    {
-
-     if(shape1.size<robot.shape.size)
-     {
-        flee.gainNode.gain.value=1;
-        flee.panner.setPosition(robot.shape.x,robot.shape.y,50);
-        break;
-    }
-
-    else if(shape1.size>robot.shape.size)
-    {
-        chase.gainNode.gain.value=1;
-        chase.panner.setPosition(robot.shape.x,robot.shape.y,50);
-        break;
-    }    
-}
-else {
-    flee.gainNode.gain.value=0;
-    chase.gainNode.gain.value=0;
-}
-}
-};
-
 Shape.prototype.checkCollisions = function(currentTime){
     var entity = this;
     shapes.forEach(function(shape){
@@ -517,25 +445,9 @@ Shape.prototype.checkCollisions = function(currentTime){
         }
     });
     if(entity!=player){
-        entity.checkCollision(currentTime,player);
+        entity.checkCollision(currentTime,player.shape);
     }
 };
-
-Shape.prototype.drawRadar= function(ctx){
-
-    var now= new Date();
-    var sec=now.getSeconds();
-
-    var radarRatio=(sec%5)/10;
-
-
-    this.radarSize=this.size*3*(1+radarRatio);
-    ctx.beginPath()
-    ctx.arc(this.x,this.y,this.radarSize,0,Math.PI*2,true);
-    ctx.strokeStyle=this.color;
-    ctx.stroke();
-    ctx.closePath();
-}
 
 Shape.prototype.IsAnimating = function() {
     return this.AnimationStartTime != undefined;
@@ -574,7 +486,6 @@ Shape.prototype.DoAnimation = function(time) {
         }
     }
 };
-
 
 Shape.prototype.StopAnimation = function() {
     if(playSound){
@@ -665,15 +576,15 @@ Robot.prototype.findNextMove = function(){
     //checking robot locations
     robots.forEach(function(robot2){
         if(robot!=robot2){
-            var dist = getDistance(robot2.x,robot2.y,robot.shape.x,robot.shape.y);
+            var dist = getDistance(robot2.shape.x,robot2.shape.y,robot.shape.x,robot.shape.y);
             if(dist<=robot.radarSize && (dist<closestDist || closestDist==-1)){
                 closestDist = dist;
-                closestX = robot2.x;
-                closestY = robot2.y;
-                if(robot.shape.size>robot2.size){
+                closestX = robot2.shape.x;
+                closestY = robot2.shape.y;
+                if(robot.shape.size>robot2.shape.size){
                     robot.targetAcquired = true;
                 }
-            // else if(robot.shape.size<robot2.size){
+            // else if(robot.shape.size<robot2.shape.size){
             //     danger = robot2;
             //     robot.dangerAcquired = true;
             // }
@@ -681,15 +592,15 @@ Robot.prototype.findNextMove = function(){
     }
 });
     //checking player location
-    var dist = getDistance(player.x,player.y,robot.shape.x,robot.shape.y);
+    var dist = getDistance(player.shape.x,player.shape.y,robot.shape.x,robot.shape.y);
     if(dist<=robot.radarSize && (dist<closestDist || closestDist==-1)){
         closestDist = dist;
-        closestX = player.x;
-        closestY = player.y;
-        if(robot.shape.size>player.size){
+        closestX = player.shape.x;
+        closestY = player.shape.y;
+        if(robot.shape.size>player.shape.size){
             robot.targetAcquired = true;
         }
-            // else if(robot.shape.size<player.size){
+            // else if(robot.shape.size<player.shape.size){
             //     danger = player;
             //     robot.dangerAcquired = true;
             // }
@@ -723,6 +634,79 @@ Robot.prototype.findNextMove = function(){
     }
 };
 
+var Player = function(x,y,size,color){
+    this.shape = new Shape(x,y,size,color,"player");
+    this.radarSize=this.shape.size*3;
+    this.listener = audioCtx.listener;
+
+    if(this.listener.forwardX) {
+          this.listener.forwardX.value = 0;
+          this.listener.forwardY.value = 0;
+          this.listener.forwardZ.value = -1;
+          this.listener.upX.value = 0;
+          this.listener.upY.value = 1;
+      // this.listener.upZ.value = 0;
+    } else {
+      this.listener.setOrientation(0,0,-1,0,1,0);
+    }
+    this.listener.positionX.value = this.shape.x;
+    this.listener.positionY.value = this.shape.y;
+    this.listener.positionZ.value = 50;
+};
+
+Player.prototype.updateAudio = function(){
+    //update audiolocation
+     this.listener.setPosition(this.shape.x,this.shape.y,50);
+};
+
+Player.prototype.numShapesRegen = function(){
+    return 20*numShapes/this.shape.size;
+}; 
+
+Player.prototype.checkRadar = function(){
+  //audio on/off for radar
+    var player=this;
+    for(var i=0;i<robots.length;i++) {
+    var robot=robots[i];
+    if(getDistance(player.shape.x,player.shape.y,robot.shape.x,robot.shape.y)<=player.radarSize+robot.shape.size/2
+    || getDistance(player.shape.x,player.shape.y,robot.shape.x,robot.shape.y)<=(player.radarSize+robot.shape.size)/2)
+    {   
+        if(player.shape.size<robot.shape.size)
+        {
+        flee.gainNode.gain.value=1;
+        flee.panner.setPosition(robot.shape.x,robot.shape.y,50);
+        break;
+        }
+
+        else if(player.shape.size>robot.shape.size)
+        {
+        chase.gainNode.gain.value=1;
+        chase.panner.setPosition(robot.shape.x,robot.shape.y,50);
+        break;
+        }    
+    }
+    else {
+    flee.gainNode.gain.value=0;
+    chase.gainNode.gain.value=0;
+    }
+    }
+};
+
+Player.prototype.drawRadar= function(ctx){
+
+    var now= new Date();
+    var sec=now.getSeconds();
+
+    var radarRatio=(sec%5)/10;
+
+
+    this.radarSize=this.shape.size*3*(1+radarRatio);
+    ctx.beginPath()
+    ctx.arc(this.shape.x,this.shape.y,this.radarSize,0,Math.PI*2,true);
+    ctx.strokeStyle=this.shape.color;
+    ctx.stroke();
+    ctx.closePath();
+};
 
 function init() {
 
@@ -741,8 +725,8 @@ function init() {
         else{robot.speedy=-robot_speed;}
         robots.push(robot);
     }
-    //CHANGE!
-    player = new Shape(generateX(player_size),generateY(player_size),player_size,getRandomColor(),0,0,true,"player");
+
+    player = new Player(generateX(player_size),generateY(player_size),player_size,getRandomColor());
 };
 
 function regenerateShapes(currentTime,numShapesRegen){
@@ -756,7 +740,7 @@ function regenerateShapes(currentTime,numShapesRegen){
 
     function regenerateRobots(currentTime){
         if(robots.length<robot_count-1){
-            var size= getRandomIntInclusive(player.size*.5, player.size*1.5);
+            var size= getRandomIntInclusive(player.shape.size*.5, player.shape.size*1.5);
             var robot = new Robot(generateX(robot_size),generateY(robot_size),0,getRandomColor(),0,0);
             if(robot.shape.x<GameWorld.Width/2){robot.speedx=robot_speed;}
             else{robot.speedx=-robot_speed;}
@@ -781,9 +765,9 @@ function resize_canvas(){
                 shape.y*=changeInHeightRatio;
                 shape.size*=changeInHeightRatio;
             });
-            player.x*=changeInWidthRatio;
-            player.y*=changeInHeightRatio;
-            player.size*=changeInHeightRatio;
+            player.shape.x*=changeInWidthRatio;
+            player.shape.y*=changeInHeightRatio;
+            player.shape.size*=changeInHeightRatio;
             robots.forEach(function(robot){
                 robot.shape.x*=changeInWidthRatio;
                 robot.shape.y*=changeInHeightRatio;
@@ -799,9 +783,9 @@ function resize_canvas(){
                 shape.y*=changeInHeightRatio;
                 shape.size*=changeInWidthRatio;
             });
-            player.x*=changeInWidthRatio;
-            player.y*=changeInHeightRatio;
-            player.size*=changeInWidthRatio;
+            player.shape.x*=changeInWidthRatio;
+            player.shape.y*=changeInHeightRatio;
+            player.shape.size*=changeInWidthRatio;
             robots.forEach(function(robot){
                 robot.shape.x*=changeInWidthRatio;
                 robot.shape.y*=changeInHeightRatio;
@@ -847,7 +831,7 @@ function update() {
 
 	//ctx.clearRect(0,0,canvas.width, canvas.height);
 
- 	GameWorld.SetViewPortCenter(ctx, player.x, player.y);
+ 	GameWorld.SetViewPortCenter(ctx, player.shape.x, player.shape.y);
 
 
     var currentTime = (new Date()).getTime();
@@ -860,9 +844,9 @@ function update() {
     regenerateRobots(currentTime);
 
 
-    player.checkCollisions(currentTime);
-    player.DoAnimation(currentTime);
-    if(player.size==0){
+    player.shape.checkCollisions(currentTime);
+    player.shape.DoAnimation(currentTime);
+    if(player.shape.size==0){
         endGame(false);
         return;
     }
@@ -879,7 +863,6 @@ function update() {
     
     for(var i=0; i<shapes.length; i++){
         var shape = shapes[i];
-        //shape.checkCollisions(currentTime);
         shape.DoAnimation(currentTime);
         if(shape.size==0){
             shapes.splice(i,1);
@@ -903,16 +886,16 @@ function update() {
         robot.shape.drawShape(ctx);
     });
 
-    player.drain();
-    player.drawShape(ctx);
+    player.shape.drain();
+    player.shape.drawShape(ctx);
     if(playSound){
-        player.updateAudio(player);
+        player.updateAudio();
         player.checkRadar();
     }
     player.drawRadar(ctx);
 
 
-    var dist = getDistance(mousex,player.x,mousey,player.y);
+    var dist = getDistance(mousex,player.shape.x,mousey,player.shape.y);
 
     var maxDist= Math.sqrt(Math.pow(GameWorld.Width,2)+Math.pow(GameWorld.Height,2));
 
@@ -920,11 +903,11 @@ function update() {
 
 
     if(mousex>0 && mousex<GameWorld.Width &&mousey>0 &&mousey<GameWorld.Height){
-        player.x=(mousex-player.x)/speedFactor+player.x;
-        player.y=(mousey-player.y)/speedFactor+player.y;
+        player.shape.x=(mousex-player.shape.x)/speedFactor+player.shape.x;
+        player.shape.y=(mousey-player.shape.y)/speedFactor+player.shape.y;
     }
-    updateScore(player.shapesEaten);
-    updateHighScore(player.shapesEaten);
+    updateScore(player.shape.shapesEaten);
+    updateHighScore(player.shape.shapesEaten);
     var speed = dist/50;
 
     window.requestAnimationFrame(update);
@@ -946,7 +929,7 @@ function endGame(win){
     } else {
         //ctx.fillText("game over",10,50);
         ctx.fillText("YOU WERE EATEN!",(canvas.width/2),(canvas.height/2-canvas.height/40));
-        ctx.fillText("Your Score=  "+player.shapesEaten,(canvas.width/2),(2*canvas.height/3));
+        ctx.fillText("Your Score=  "+player.shape.shapesEaten,(canvas.width/2),(2*canvas.height/3));
     }
     shapes.forEach(function(shape){
         if (shape.source!=undefined) {
@@ -969,7 +952,7 @@ function dark() {
     ctx.fillStyle="#000000"
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.beginPath();
-    ctx.arc(player.x, player.y, player.radarSize, 0, Math.PI*2);
+    ctx.arc(player.shape.x, player.shape.y, player.radarSize, 0, Math.PI*2);
     ctx.closePath();
     ctx.clip();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
