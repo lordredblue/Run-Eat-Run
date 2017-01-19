@@ -479,23 +479,23 @@ Shape.prototype.checkRadar =function() {
   //audio on/off for radar
   var shape1=this;
   for(var i=0;i<robots.length;i++) {
-    var shape2=robots[i];
+    var robot=robots[i];
 
-    if(getDistance(shape1.x,shape1.y,shape2.x,shape2.y)<=shape1.radarSize+shape2.size/2
-        || getDistance(shape1.x,shape1.y,shape2.x,shape2.y)<=(shape1.radarSize+shape2.size)/2)
+    if(getDistance(shape1.x,shape1.y,robot.shape.x,robot.shape.y)<=shape1.radarSize+robot.shape.size/2
+        || getDistance(shape1.x,shape1.y,robot.shape.x,robot.shape.y)<=(shape1.radarSize+robot.shape.size)/2)
     {
 
-     if(shape1.size<shape2.size)
+     if(shape1.size<robot.shape.size)
      {
         flee.gainNode.gain.value=1;
-        flee.panner.setPosition(shape2.x,shape2.y,50);
+        flee.panner.setPosition(robot.shape.x,robot.shape.y,50);
         break;
     }
 
-    else if(shape1.size>shape2.size)
+    else if(shape1.size>robot.shape.size)
     {
         chase.gainNode.gain.value=1;
-        chase.panner.setPosition(shape2.x,shape2.y,50);
+        chase.panner.setPosition(robot.shape.x,robot.shape.y,50);
         break;
     }    
 }
