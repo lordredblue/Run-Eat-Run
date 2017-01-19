@@ -467,8 +467,10 @@ Shape.prototype.DoAnimation = function(time) {
     {
         var deltaTime = time - this.AnimationStartTime;
 
-        if (deltaTime >= this.AnimationPeriod)
+        if (deltaTime >= this.AnimationPeriod){
+            this.size=this.AnimationStopSize;
             this.StopAnimation();
+        }
         else
         {
             var sizeDelta = this.AnimationStopSize - this.AnimationStartSize;
@@ -917,7 +919,8 @@ function update() {
 
 function endGame(win){
     canvas.style.background = 'black';
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    //ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.resetTransform();
     ctx.font = "30px Arial";
     ctx.textBaseline = 'middle';
     ctx.textAlign="center"; 
@@ -928,8 +931,8 @@ function endGame(win){
         ctx.fillText("YOU WON!",(canvas.width/2),(canvas.height/2-canvas.height/40));
     } else {
         //ctx.fillText("game over",10,50);
-        ctx.fillText("YOU WERE EATEN!",(canvas.width/2),(canvas.height/2-canvas.height/40));
-        ctx.fillText("Your Score=  "+player.shape.shapesEaten,(canvas.width/2),(2*canvas.height/3));
+        ctx.fillText("YOU WERE EATEN!",(canvas.width/2),(canvas.height/2-canvas.height/20));
+        ctx.fillText("Your Score = "+player.shape.shapesEaten,(canvas.width/2),(canvas.height/2));
     }
     shapes.forEach(function(shape){
         if (shape.source!=undefined) {
