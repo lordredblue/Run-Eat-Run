@@ -263,6 +263,7 @@ var robot_speed = 5;//main speed magnitude\
 var min_drain_size = player_size;
 
 var robot_count = 5;
+var robot_id_counter = 0;
 
 var maxNumShapes=90;
 var minNumShapes=60;
@@ -326,7 +327,7 @@ var Point = function (x,y) {
 
 //Shape object
 var Shape = function(x,y,size,color,type){
-    console.log("Shape created");
+    //console.log("Shape created");
     this.x = x;
     this.y = y;
     this.size = size;
@@ -514,6 +515,8 @@ var Robot = function(x,y,size,color,speedx,speedy){
     this.shape = new Shape(x,y,size,color,"robot")
     this.speedx = speedx;
     this.speedy = speedy;
+    this.id = ++robot_id_counter;
+    console.log("Robot "+this.id+" created")
 };
 
 Robot.prototype.autoMove = function(){
@@ -735,15 +738,15 @@ function regenerateShapes(currentTime,numShapesRegen){
     if(shapes.length<numShapesRegen){
         for(var i=0; i<2; i++){
             var size = generateSize();
-            shapes.push(new Shape(generateX(size),generateY(size),0,getRandomColor(),"shape"));
+            shapes.push(new Shape(generateX(size),generateY(size),1,getRandomColor(),"shape"));
             shapes[shapes.length-1].StartAnimation(currentTime,500,size,0);    }
         }
     };
 
     function regenerateRobots(currentTime){
-        if(robots.length<robot_count-1){
+        if(robots.length<robot_count){
             var size= getRandomIntInclusive(player.shape.size*.5, player.shape.size*1.5);
-            var robot = new Robot(generateX(robot_size),generateY(robot_size),0,getRandomColor(),0,0);
+            var robot = new Robot(generateX(robot_size),generateY(robot_size),1,getRandomColor(),0,0);
             if(robot.shape.x<GameWorld.Width/2){robot.speedx=robot_speed;}
             else{robot.speedx=-robot_speed;}
             if(robot.shape.y<GameWorld.Height/2){robot.speedy=robot_speed;}
@@ -859,6 +862,7 @@ function update() {
         robot.shape.checkCollisions(currentTime);
         robot.shape.DoAnimation(currentTime);
         if(robot.shape.size==0){
+            console.log("Robot "+robot.id+" destroyed");
             robots.splice(i,1);
         }
     }
